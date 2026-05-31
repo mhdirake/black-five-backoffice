@@ -3,7 +3,7 @@ export const LOCALES = {
   en: "en",
 };
 
-export const LOCALE_COOKIE = "black-five-locale";
+export const LOCALE_COOKIE = "black-five-back-office-locale";
 export const DEFAULT_LOCALE = LOCALES.fa;
 
 export const DIRECTIONS = {
@@ -13,3 +13,4 @@ export const DIRECTIONS = {
 
 export const getDirection = (locale) => DIRECTIONS[locale] || DIRECTIONS[DEFAULT_LOCALE];
 export const isLocale = (locale) => Object.values(LOCALES).includes(locale);
+    

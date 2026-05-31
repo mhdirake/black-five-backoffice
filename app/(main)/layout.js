@@ -1,30 +1,20 @@
-import Footer from "@/components/layout/Footer";
-import Header from "@/components/layout/Header";
-import { Main } from "@/components/layout/style";
-import { UserContextProvider } from "@/context/UserContextProvider";
-import authApi from "@/store/slices/auth/authApi";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/config/auth";
+import Sidebar from "@/components/layout/Sidebar";
+import { DashboardRoot, DashboardContent } from "./style";
 
+export default async function DashboardLayout({ children }) {
+  const session = await getServerSession(authOptions);
 
-const getUser = async () => {
-  try {
-    const data = await authApi.userInformation()
-
-    return data;
-  } catch (e) {
-    return null;
+  if (!session) {
+    redirect("/inner-api/auth/signin?callbackUrl=%2F");
   }
-};
-
-export default async function MainLayout({ children }) {
-  const user = await getUser();
 
   return (
-    <UserContextProvider userInfo={user}>
-      <Main>
-        <Header />
-        {children}
-        <Footer />
-      </Main>
-    </UserContextProvider>
+    <DashboardRoot dir={"rtl"}>
+      <DashboardContent>{children}</DashboardContent>
+      <Sidebar userName={session?.user?.name} />
+    </DashboardRoot>
   );
 }
