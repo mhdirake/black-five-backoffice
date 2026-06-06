@@ -14,9 +14,15 @@ const requestHandler = async (config) => {
   let token = null;
 
   if (isClient) {
-    token =
-      localStorage.getItem("access_token") ||
-      localStorage.getItem("userToken");
+    const { getSession } = await import("next-auth/react");
+    const session = await getSession();
+    token = session?.accessToken;
+
+    if (!token) {
+      token =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("userToken");
+    }
   } else {
     const { cookies } = await import("next/headers");
     const { getNextAuthToken } = await import("@/config/nextAuthToken");

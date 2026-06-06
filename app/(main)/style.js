@@ -6,7 +6,7 @@ export const SIDEBAR_WIDTH = 260;
 
 export const DashboardRoot = styled(Box)(({ theme }) => ({
   display: "flex",
-  minHeight: "100vh",
+  minHeight: "100dvh",
   background: theme.palette.background.default,
 }));
 
@@ -20,7 +20,7 @@ export const DashboardContent = styled(Box)(({ theme }) => ({
     `radial-gradient(ellipse at 15% 85%, ${theme.palette.modules.backgroundGoldGlow} 0%, transparent 48%)`,
   ].join(", "),
   padding: theme.spacing(4),
-  minHeight: "100vh",
+  minHeight: "100dvh",
   [theme.breakpoints.down("md")]: {
     marginInlineStart: 0,
     padding: theme.spacing(2.5),

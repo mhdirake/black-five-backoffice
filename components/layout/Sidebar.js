@@ -1,10 +1,11 @@
 "use client";
 
+import CategoryIcon from "@mui/icons-material/Category";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LogoutIcon from "@mui/icons-material/Logout";
-import PeopleIcon from "@mui/icons-material/People";
-import { Avatar, Box, Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import { Avatar, Box, Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,16 +16,19 @@ import { useLocalization } from "@/context/LocalizationProvider";
 
 const navItems = [
   { label: "داشبورد", href: "/", icon: DashboardIcon },
-  { label: "کاربران", href: "/users", icon: PeopleIcon },
+  { label: "دسته‌بندی‌ها", href: "/categories", icon: CategoryIcon },
+  { label: "محصولات", href: "/products", icon: Inventory2Icon },
   { label: "حراج‌ها", href: "/auctions", icon: GavelIcon },
 ];
 
-export default function Sidebar({ userName }) {
+export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
   const pathname = usePathname();
-  const { isRtl } = useLocalization()
+  const { isRtl } = useLocalization();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  return (
-    <SidebarDrawer variant="permanent" anchor="right">
+  const drawerContent = (
+    <>
       <LogoBox>
         <Image
           src="/images/black-five-logo.png"
@@ -43,8 +47,20 @@ export default function Sidebar({ userName }) {
           const isActive = pathname === href;
           return (
             <ListItem key={href} disablePadding sx={{ mb: 0.5 }}>
-              <NavButton component={Link} href={href} isActive={isActive}>
-                <ListItemIcon sx={{ minWidth: 36, color: isActive ? "secondary.main" : "text.disabled", transition: "color 200ms ease", ...(isActive && { filter: "drop-shadow(0 0 6px rgba(253,197,0,0.5))" }) }}>
+              <NavButton
+                component={Link}
+                href={href}
+                isActive={isActive}
+                onClick={isMobile ? onMobileClose : undefined}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 36,
+                    color: isActive ? "secondary.main" : "text.disabled",
+                    transition: "color 200ms ease",
+                    ...(isActive && { filter: "drop-shadow(0 0 6px rgba(253,197,0,0.5))" }),
+                  }}
+                >
                   <Icon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
                 <ListItemText
@@ -55,7 +71,7 @@ export default function Sidebar({ userName }) {
                         fontSize: 13.5,
                         fontWeight: isActive ? 600 : 400,
                         color: isActive ? "text.primary" : "text.disabled",
-                        textAlign: isRtl ? "right" : "left"
+                        textAlign: isRtl ? "right" : "left",
                       },
                     },
                   }}
@@ -71,7 +87,18 @@ export default function Sidebar({ userName }) {
 
         {userName && (
           <UserBox>
-            <Avatar sx={{ width: 30, height: 30, fontSize: 13, fontWeight: 700, bgcolor: "modules.goldGlass", color: "secondary.main", border: "1.5px solid", borderColor: "modules.goldBorder" }}>
+            <Avatar
+              sx={{
+                width: 30,
+                height: 30,
+                fontSize: 13,
+                fontWeight: 700,
+                bgcolor: "modules.goldGlass",
+                color: "secondary.main",
+                border: "1.5px solid",
+                borderColor: "modules.goldBorder",
+              }}
+            >
               {userName[0]}
             </Avatar>
             <Typography noWrap sx={{ fontSize: 13, color: "text.disabled", fontWeight: 500 }}>
@@ -86,13 +113,55 @@ export default function Sidebar({ userName }) {
           </ListItemIcon>
           <ListItemText
             primary="خروج"
-            slotProps={{ primary: { sx: { fontSize: 13.5, color: "inherit", fontWeight: 500, textAlign: isRtl ? "right" : "left" } } }}
+            slotProps={{
+              primary: {
+                sx: {
+                  fontSize: 13.5,
+                  color: "inherit",
+                  fontWeight: 500,
+                  textAlign: isRtl ? "right" : "left",
+                },
+              },
+            }}
           />
         </LogoutButton>
       </Box>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer
+        variant="temporary"
+        anchor={"right"}
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: SIDEBAR_WIDTH,
+            boxSizing: "border-box",
+            display: "flex",
+            flexDirection: "column",
+            background: theme.palette.background.default,
+            borderLeft: `1px solid ${theme.palette.modules.goldGlass}`,
+            borderRight: "none",
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    );
+  }
+
+  return (
+    <SidebarDrawer variant="permanent" anchor="right">
+      {drawerContent}
     </SidebarDrawer>
   );
 }
+
+// ─── Styled Components ────────────────────────────────────────────────────────
 
 const SidebarDrawer = styled(Drawer)(({ theme }) => ({
   "& .MuiDrawer-paper": {
@@ -123,25 +192,25 @@ const NavButton = styled(ListItemButton, {
   transition: "all 200ms ease",
   ...(isActive
     ? {
-      background: theme.palette.modules.goldGlass,
-      boxShadow: `inset 0 0 0 1px ${theme.palette.modules.goldGlassStrong}`,
-      "&::after": {
-        content: '""',
-        position: "absolute",
-        right: 0,
-        top: "18%",
-        height: "64%",
-        width: 3,
-        borderRadius: "4px 0 0 4px",
-        background: `linear-gradient(to bottom, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
-        boxShadow: `0 0 8px ${theme.palette.modules.backgroundGoldGlow}`,
-      },
-    }
+        background: theme.palette.modules.goldGlass,
+        boxShadow: `inset 0 0 0 1px ${theme.palette.modules.goldGlassStrong}`,
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          left: 0,
+          top: "18%",
+          height: "64%",
+          width: 3,
+          borderRadius: "0 4px 4px 0",
+          background: `linear-gradient(to bottom, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+          boxShadow: `0 0 8px ${theme.palette.modules.backgroundGoldGlow}`,
+        },
+      }
     : {
-      "&:hover": {
-        background: theme.palette.modules.glassBorderLight,
-      },
-    }),
+        "&:hover": {
+          background: theme.palette.modules.glassBorderLight,
+        },
+      }),
 }));
 
 const UserBox = styled(Box)(({ theme }) => ({

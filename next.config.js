@@ -28,7 +28,11 @@ const nextConfig = {
       {
         source: "/api/client/:path*",
         destination: `${process.env.NEXT_PUBLIC_API_URL}/api/client/:path*`,
-      }
+      },
+      {
+        source: "/api/backoffice/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/backoffice/:path*`,
+      },
     ];
   },
 

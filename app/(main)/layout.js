@@ -1,8 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/config/auth";
-import Sidebar from "@/components/layout/Sidebar";
-import { DashboardRoot, DashboardContent } from "./style";
+import DashboardLayoutClient from "./DashboardLayoutClient";
 
 export default async function DashboardLayout({ children }) {
   const session = await getServerSession(authOptions);
@@ -12,9 +11,8 @@ export default async function DashboardLayout({ children }) {
   }
 
   return (
-    <DashboardRoot dir={"rtl"}>
-      <DashboardContent>{children}</DashboardContent>
-      <Sidebar userName={session?.user?.name} />
-    </DashboardRoot>
+    <DashboardLayoutClient userName={session?.user?.name}>
+      {children}
+    </DashboardLayoutClient>
   );
 }
