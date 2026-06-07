@@ -1,17 +1,18 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/config/auth";
+import { cookies } from "next/headers";
+import { getNextAuthToken } from "@/config/nextAuthToken";
 import DashboardLayoutClient from "./DashboardLayoutClient";
 
 export default async function DashboardLayout({ children }) {
-  const session = await getServerSession(authOptions);
+  const cookieStore = await cookies();
+  const token = await getNextAuthToken(cookieStore);
 
-  if (!session) {
-    redirect("/inner-api/auth/signin?callbackUrl=%2F");
+  if (!token?.accessToken) {
+    redirect("/login");
   }
 
   return (
-    <DashboardLayoutClient userName={session?.user?.name}>
+    <DashboardLayoutClient>
       {children}
     </DashboardLayoutClient>
   );

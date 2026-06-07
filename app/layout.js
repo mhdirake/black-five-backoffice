@@ -11,8 +11,8 @@ import { cookies } from 'next/headers';
 import { ToastContainer } from 'react-toastify';
 
 export const metadata = {
-  title: 'Black Five | بک‌آفیس',
-  description: 'پنل مدیریت بلک فایو',
+  title: 'Black Five | Backoffice',
+  description: 'Black Five | Backoffice',
 };
 
 export default async function RootLayout({ children }) {
@@ -27,7 +27,11 @@ export default async function RootLayout({ children }) {
         <ToastContainer
           position={direction === 'rtl' ? 'top-left' : 'top-right'}
           rtl={direction === 'rtl'}
-          className={'toast-custom-style'}
+          className="toast-custom-style"
+          autoClose={2500}
+          hideProgressBar
+          closeButton={false}
+          icon={false}
         />
         <StoreProvider>
           <LocalizationProvider initialLocale={locale}>

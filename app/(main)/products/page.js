@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -12,31 +13,23 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton,
   InputAdornment,
   MenuItem,
   Pagination,
-  Paper,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { productsApi } from "@/store/slices/products/productsApi";
 import { categoriesApi } from "@/store/slices/categories/categoriesApi";
-import { formatPrice } from "@/helpers/general";
+import { Table } from "@/components/ui/Table";
+import PriceInput from "@/components/ui/PriceInput";
+import TextArea from "@/components/ui/TextArea";
 
 const PAGE_SIZE = 20;
 
-const PRODUCT_STATUS_MAP = {
+const STATUS_MAP = {
   active:   { label: "فعال",     color: "success" },
   inactive: { label: "غیرفعال", color: "default" },
   archived: { label: "آرشیو",   color: "error" },
@@ -52,6 +45,63 @@ const EMPTY_FORM = {
   images: [],
 };
 
+// backend returns category object inline — no state lookup needed
+const COLUMNS = [
+  {
+    key: "title",
+    label: "عنوان",
+    render: (row) => (
+      <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: "text.primary" }}>
+        {row.title}
+      </Typography>
+    ),
+  },
+  {
+    key: "category",
+    label: "دسته‌بندی",
+    render: (row) => (
+      <Typography sx={{ fontSize: 13, color: "text.disabled" }}>
+        {row.category?.name ?? "—"}
+      </Typography>
+    ),
+  },
+  {
+    key: "attributes",
+    label: "برند / مدل",
+    render: (row) => {
+      const brand = row.attributes?.brand;
+      const model = row.attributes?.model;
+      if (!brand && !model) return <Typography sx={{ fontSize: 13, color: "text.disabled" }}>—</Typography>;
+      return (
+        <Box>
+          <Typography sx={{ fontSize: 13, fontWeight: 500, color: "text.primary" }}>{brand}</Typography>
+          {model && <Typography sx={{ fontSize: 11, color: "text.disabled", mt: 0.25 }}>{model}</Typography>}
+        </Box>
+      );
+    },
+  },
+  {
+    key: "estimated_value",
+    label: "ارزش تخمینی",
+    render: (row) => {
+      const val = parseFloat(row.estimated_value);
+      return (
+        <Typography sx={{ fontSize: 13, direction: "ltr", display: "inline-block" }}>
+          {val ? val.toLocaleString("en-US") + " T" : "—"}
+        </Typography>
+      );
+    },
+  },
+  {
+    key: "status",
+    label: "وضعیت",
+    render: (row) => {
+      const s = STATUS_MAP[row.status] ?? { label: row.status, color: "default" };
+      return <Chip label={s.label} color={s.color} size="small" sx={{ fontSize: 11, fontWeight: 600, height: 22 }} />;
+    },
+  },
+];
+
 export default function ProductsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -59,6 +109,8 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // categories only needed for form dropdown
   const [categories, setCategories] = useState([]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -89,26 +141,36 @@ export default function ProductsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  useEffect(() => {
-    categoriesApi.list({ limit: 100 })
+  // load categories only when dialog is first opened
+  const loadCategories = () => {
+    if (categories.length > 0) return;
+    categoriesApi.list({ limit: 200 })
       .then((res) => setCategories(res?.results ?? res?.data ?? []))
       .catch(() => {});
-  }, []);
+  };
 
-  const openCreate = () => { setEditTarget(null); setForm(EMPTY_FORM); setDialogOpen(true); };
+  const openCreate = () => {
+    loadCategories();
+    setEditTarget(null);
+    setForm(EMPTY_FORM);
+    setDialogOpen(true);
+  };
+
   const openEdit = (row) => {
+    loadCategories();
     setEditTarget(row);
     setForm({
       category_id: row.category_id ?? "",
       title: row.title ?? "",
       description: row.description ?? "",
-      estimated_value: row.estimated_value ?? "",
+      estimated_value: parseFloat(row.estimated_value) || "",
       status: row.status ?? "active",
       attributes: row.attributes ?? {},
       images: row.images ?? [],
     });
     setDialogOpen(true);
   };
+
   const closeDialog = () => { if (saving) return; setDialogOpen(false); };
 
   const handleSave = async () => {
@@ -147,11 +209,25 @@ export default function ProductsPage() {
     }
   };
 
+  const actions = [
+    {
+      type: "icon",
+      icon: <EditOutlinedIcon sx={{ fontSize: 17 }} />,
+      onClick: openEdit,
+      sx: { color: "text.disabled", "&:hover": { color: "secondary.main" } },
+    },
+    {
+      type: "icon",
+      icon: <DeleteOutlineIcon sx={{ fontSize: 17 }} />,
+      onClick: setDeleteTarget,
+      sx: { color: "text.disabled", "&:hover": { color: "error.main" } },
+    },
+  ];
+
   const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 4, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
         <Box>
           <Typography variant="h3" sx={{ color: "text.primary", fontWeight: 700, mb: 0.5, lineHeight: 1.25 }}>
@@ -161,27 +237,11 @@ export default function ProductsPage() {
             مدیریت محصولات پلتفرم
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={openCreate}
-          sx={{
-            background: "linear-gradient(135deg, #ffd500 0%, #fdc500 100%)",
-            color: "#00296b",
-            fontWeight: 700,
-            fontSize: 13,
-            px: 2.5,
-            py: 1.1,
-            borderRadius: 2,
-            boxShadow: "0 4px 16px rgba(253,197,0,0.25)",
-            "&:hover": { boxShadow: "0 6px 24px rgba(253,197,0,0.35)" },
-          }}
-        >
+        <AddButton variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
           محصول جدید
-        </Button>
+        </AddButton>
       </Box>
 
-      {/* Search */}
       <TextField
         placeholder="جستجو در محصولات..."
         value={searchInput}
@@ -199,70 +259,13 @@ export default function ProductsPage() {
         }}
       />
 
-      {/* Table */}
-      <TableContainer component={StyledPaper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {["عنوان", "دسته‌بندی", "وضعیت", "ارزش تخمینی", "عملیات"].map((col) => (
-                <TableCell key={col}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.disabled" }}>{col}</Typography>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading
-              ? Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 5 }).map((__, j) => (
-                      <TableCell key={j}><Skeleton variant="text" width="70%" height={20} sx={{ bgcolor: "rgba(255,255,255,0.06)" }} /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : rows.length === 0
-              ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                      <Typography sx={{ color: "text.disabled", fontSize: 14 }}>محصولی یافت نشد</Typography>
-                    </TableCell>
-                  </TableRow>
-                )
-              : rows.map((row) => {
-                  const statusInfo = PRODUCT_STATUS_MAP[row.status] ?? { label: row.status, color: "default" };
-                  const categoryName = categories.find((c) => c.id === row.category_id)?.name ?? "—";
-                  return (
-                    <StyledRow key={row.id}>
-                      <TableCell>
-                        <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: "text.primary" }}>{row.title}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: 13, color: "text.disabled" }}>{categoryName}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={statusInfo.label} color={statusInfo.color} size="small" sx={{ fontSize: 11, fontWeight: 600, height: 22 }} />
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: 13, color: "text.primary", direction: "ltr", display: "inline-block" }}>
-                          {row.estimated_value ? `${formatPrice(row.estimated_value)} ت` : "—"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 0.5 }}>
-                          <IconButton size="small" onClick={() => openEdit(row)} sx={{ color: "text.disabled", "&:hover": { color: "secondary.main" } }}>
-                            <EditOutlinedIcon sx={{ fontSize: 17 }} />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => setDeleteTarget(row)} sx={{ color: "text.disabled", "&:hover": { color: "error.main" } }}>
-                            <DeleteOutlineIcon sx={{ fontSize: 17 }} />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </StyledRow>
-                  );
-                })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Table
+        columns={COLUMNS}
+        rows={rows}
+        loading={loading}
+        actions={actions}
+        emptyLabel="محصولی یافت نشد"
+      />
 
       {pageCount > 1 && (
         <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
@@ -270,8 +273,7 @@ export default function ProductsPage() {
         </Box>
       )}
 
-      {/* Create / Edit Dialog */}
-      <StyledDialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
+      <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>
           {editTarget ? "ویرایش محصول" : "محصول جدید"}
         </DialogTitle>
@@ -280,45 +282,69 @@ export default function ProductsPage() {
             label="عنوان"
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            fullWidth
-            size="small"
+            fullWidth size="small"
           />
           <TextField
-            select
-            label="دسته‌بندی"
+            select label="دسته‌بندی"
             value={form.category_id}
-            onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-            fullWidth
-            size="small"
+            onChange={(e) => {
+              const catId = e.target.value;
+              const cat = categories.find((c) => c.id === catId);
+              setForm((f) => ({ ...f, category_id: catId, attributes: cat?.attributes_schema?.reduce((acc, s) => ({ ...acc, [s.key]: f.attributes?.[s.key] ?? "" }), {}) ?? {} }));
+            }}
+            fullWidth size="small"
           >
             {categories.map((c) => (
               <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
             ))}
           </TextField>
-          <TextField
+
+          {(() => {
+            const cat = categories.find((c) => c.id === form.category_id);
+            const schema = cat?.attributes_schema ?? [];
+            if (!schema.length) return null;
+            return (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Typography sx={{ fontSize: 12, color: "text.disabled" }}>ویژگی‌های دسته‌بندی</Typography>
+                {schema.map((attr) => (
+                  attr.type === "number" ? (
+                    <PriceInput
+                      key={attr.key}
+                      label={attr.label}
+                      value={form.attributes?.[attr.key] ?? ""}
+                      onChange={(val) => setForm((f) => ({ ...f, attributes: { ...f.attributes, [attr.key]: val } }))}
+                      size="small"
+                    />
+                  ) : (
+                    <TextField
+                      key={attr.key}
+                      label={attr.label}
+                      value={form.attributes?.[attr.key] ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, attributes: { ...f.attributes, [attr.key]: e.target.value } }))}
+                      fullWidth size="small"
+                    />
+                  )
+                ))}
+              </Box>
+            );
+          })()}
+
+          <TextArea
             label="توضیحات"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            fullWidth
-            size="small"
-            multiline
-            rows={3}
           />
-          <TextField
+          <PriceInput
             label="ارزش تخمینی (تومان)"
             value={form.estimated_value}
-            onChange={(e) => setForm((f) => ({ ...f, estimated_value: e.target.value }))}
-            fullWidth
+            onChange={(val) => setForm((f) => ({ ...f, estimated_value: val }))}
             size="small"
-            slotProps={{ input: { sx: { direction: "ltr" } } }}
           />
           <TextField
-            select
-            label="وضعیت"
+            select label="وضعیت"
             value={form.status}
             onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-            fullWidth
-            size="small"
+            fullWidth size="small"
           >
             <MenuItem value="active">فعال</MenuItem>
             <MenuItem value="inactive">غیرفعال</MenuItem>
@@ -327,15 +353,13 @@ export default function ProductsPage() {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <Button onClick={closeDialog} disabled={saving} sx={{ color: "text.disabled" }}>انصراف</Button>
-          <Button variant="contained" onClick={handleSave} disabled={saving}
-            sx={{ background: "linear-gradient(135deg, #ffd500, #fdc500)", color: "#00296b", fontWeight: 700, minWidth: 90 }}>
+          <SaveButton variant="contained" onClick={handleSave} disabled={saving}>
             {saving ? "..." : "ذخیره"}
-          </Button>
+          </SaveButton>
         </DialogActions>
-      </StyledDialog>
+      </Dialog>
 
-      {/* Delete Confirm Dialog */}
-      <StyledDialog open={!!deleteTarget} onClose={() => !deleting && setDeleteTarget(null)} maxWidth="xs" fullWidth>
+      <Dialog open={!!deleteTarget} onClose={() => !deleting && setDeleteTarget(null)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontSize: 15, fontWeight: 700, color: "text.primary" }}>حذف محصول</DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: 13.5, color: "text.disabled" }}>
@@ -348,31 +372,30 @@ export default function ProductsPage() {
             {deleting ? "..." : "حذف"}
           </Button>
         </DialogActions>
-      </StyledDialog>
+      </Dialog>
     </Box>
   );
 }
 
 // ─── Styled Components ────────────────────────────────────────────────────────
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  background: `linear-gradient(145deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
-  border: `1px solid ${theme.palette.modules.glassBorder}`,
-  borderRadius: 10,
-  overflow: "auto",
+const AddButton = styled(Button)(({ theme }) => ({
+  background: "linear-gradient(135deg, #ffd500 0%, #fdc500 100%)",
+  color: "#00296b",
+  fontWeight: 700,
+  fontSize: 13,
+  paddingLeft: theme.spacing(2.5),
+  paddingRight: theme.spacing(2.5),
+  paddingTop: theme.spacing(1.1),
+  paddingBottom: theme.spacing(1.1),
+  borderRadius: 8,
+  boxShadow: "0 4px 16px rgba(253,197,0,0.25)",
+  "&:hover": { boxShadow: "0 6px 24px rgba(253,197,0,0.35)" },
 }));
 
-const StyledRow = styled(TableRow)(() => ({
-  transition: "background 150ms ease",
-  "&:hover": { background: "rgba(255,255,255,0.03)" },
-  "& td": { borderBottom: "1px solid rgba(255,255,255,0.05)", padding: "12px 16px" },
-}));
-
-const StyledDialog = styled(Dialog)(({ theme }) => ({
-  "& .MuiDialog-paper": {
-    background: theme.palette.background.default,
-    border: `1px solid ${theme.palette.modules.glassBorder}`,
-    borderRadius: 12,
-    boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
-  },
-}));
+const SaveButton = styled(Button)({
+  background: "linear-gradient(135deg, #ffd500, #fdc500)",
+  color: "#00296b",
+  fontWeight: 700,
+  minWidth: 90,
+});

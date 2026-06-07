@@ -85,3 +85,38 @@ label,
 .toast-rtl .Toastify__toast-body {
   direction: rtl;
 }
+
+/* ─── Minimal Toast ────────────────────────────────────────────────────────── */
+
+.toast-custom-style .Toastify__toast {
+  background: #001a3e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 16px;
+  min-height: unset;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+  color: #fff;
+}
+
+.toast-custom-style .Toastify__toast--success {
+  border-inline-start: 3px solid #22AB94;
+}
+
+.toast-custom-style .Toastify__toast--error {
+  border-inline-start: 3px solid #ff3547;
+}
+
+.toast-custom-style .Toastify__toast--warning {
+  border-inline-start: 3px solid #fdc500;
+}
+
+.toast-custom-style .Toastify__toast--info {
+  border-inline-start: 3px solid #2762c8;
+}
+
+.toast-custom-style .Toastify__toast-body {
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}

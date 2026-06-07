@@ -1,10 +1,20 @@
 export const MuiChip = {
   styleOverrides: {
     root: ({ theme, ownerState }) => {
-      const background = theme?.palette?.[ownerState?.color]?.main + 10;
+      const mainColor = theme?.palette?.[ownerState?.color]?.main;
+      const isDefault = !mainColor || ownerState?.color === "default";
+
+      const background = isDefault
+        ? "rgba(255,255,255,0.08)"
+        : mainColor + "26";
+
+      const labelColor = isDefault
+        ? theme.palette.text.disabled
+        : mainColor;
 
       return {
-        backgroundColor: background || theme.palette.modules.chipFallback,
+        backgroundColor: background,
+        color: labelColor,
 
         "&.MuiChip-sizeMedium": {
           borderRadius: 5,
@@ -19,7 +29,6 @@ export const MuiChip = {
           borderRadius: 5,
           fontSize: "14px",
           height: "24px",
-
           ".MuiChip-label": {
             padding: theme.spacing(0.5, 1),
           },
@@ -28,13 +37,8 @@ export const MuiChip = {
         "&.MuiChip-sizeSmall": {
           borderRadius: 5,
           fontSize: "10px",
-          aspectRatio: "1/1",
-
           ".MuiChip-label": {
-            padding: theme.spacing(0.5, 2),
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            padding: theme.spacing(0.5, 1.5),
           },
         },
       };

@@ -1,6 +1,7 @@
 "use client";
 
 import CategoryIcon from "@mui/icons-material/Category";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
@@ -13,12 +14,14 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/config/authClient";
 import { SIDEBAR_WIDTH } from "@/app/(main)/style";
 import { useLocalization } from "@/context/LocalizationProvider";
+import { useSelector } from "react-redux";
 
 const navItems = [
   { label: "داشبورد", href: "/", icon: DashboardIcon },
-  { label: "دسته‌بندی‌ها", href: "/categories", icon: CategoryIcon },
-  { label: "محصولات", href: "/products", icon: Inventory2Icon },
   { label: "حراج‌ها", href: "/auctions", icon: GavelIcon },
+  { label: "محصولات", href: "/products", icon: Inventory2Icon },
+  { label: "دسته‌بندی‌ها", href: "/categories", icon: CategoryIcon },
+  { label: "سطوح بلیت", href: "/ticket-levels", icon: ConfirmationNumberIcon },
 ];
 
 export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
@@ -26,6 +29,8 @@ export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
   const { isRtl } = useLocalization();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const user = useSelector((state) => state.auth.userInformation)
 
   const drawerContent = (
     <>
@@ -85,7 +90,7 @@ export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
       <Box sx={{ px: 1.5, pb: 2 }}>
         <Divider sx={{ mb: 2, borderColor: "modules.glassBorderLight" }} />
 
-        {userName && (
+        {user && (
           <UserBox>
             <Avatar
               sx={{
@@ -99,10 +104,10 @@ export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
                 borderColor: "modules.goldBorder",
               }}
             >
-              {userName[0]}
+              {user?.first_name?.[0]}
             </Avatar>
             <Typography noWrap sx={{ fontSize: 13, color: "text.disabled", fontWeight: 500 }}>
-              {userName}
+              {user?.first_name} {user?.last_name}
             </Typography>
           </UserBox>
         )}

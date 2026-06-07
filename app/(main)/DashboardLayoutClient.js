@@ -2,12 +2,19 @@
 
 import MenuIcon from "@mui/icons-material/Menu";
 import { Box, IconButton } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import Sidebar from "@/components/layout/Sidebar";
 import { DashboardContent, DashboardRoot } from "./style";
+import { getUserInformation } from "@/store/slices/auth/authSlice";
 
-export default function DashboardLayoutClient({ children, userName }) {
+export default function DashboardLayoutClient({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getUserInformation());
+  }, []);
 
   return (
     <DashboardRoot>
@@ -29,7 +36,6 @@ export default function DashboardLayoutClient({ children, userName }) {
         {children}
       </DashboardContent>
       <Sidebar
-        userName={userName}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />

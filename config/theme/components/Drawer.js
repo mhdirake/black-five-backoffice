@@ -1,7 +1,7 @@
-export const MuiDrawer = {
+const MuiDrawer = {
   styleOverrides: {
     root: {
-      zIndex: 1600,
+      // zIndex intentionally removed — Dialog (modal: 1300) must be above Drawer (drawer: 1200)
     },
   },
 };

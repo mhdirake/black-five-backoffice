@@ -16,6 +16,13 @@ const requestHandler = async (config) => {
   if (isClient) {
     const { getSession } = await import("next-auth/react");
     const session = await getSession();
+
+    if (session?.error === "RefreshAccessTokenError") {
+      const { logout } = await import("@/config/authClient");
+      await logout("/");
+      return Promise.reject({ response: { status: 401 }, config });
+    }
+
     token = session?.accessToken;
 
     if (!token) {

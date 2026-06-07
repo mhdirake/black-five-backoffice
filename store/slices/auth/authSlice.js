@@ -32,7 +32,7 @@ export const authSlice = createSlice({
     })
 
     builder.addCase(getUserInformation.fulfilled, (state, { payload }) => {
-      state.userInformation = payload?.data
+      state.userInformation = payload
     })
   },
 });

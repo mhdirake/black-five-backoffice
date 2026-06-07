@@ -7,11 +7,13 @@ export const SIDEBAR_WIDTH = 260;
 export const DashboardRoot = styled(Box)(({ theme }) => ({
   display: "flex",
   minHeight: "100dvh",
+  overflowX: "hidden",
   background: theme.palette.background.default,
 }));
 
 export const DashboardContent = styled(Box)(({ theme }) => ({
   flexGrow: 1,
+  minWidth: 0,
   marginInlineEnd: 0,
   marginInlineStart: SIDEBAR_WIDTH,
   background: theme.palette.background.default,

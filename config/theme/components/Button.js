@@ -1,14 +1,14 @@
 const buttonSizes = {
   small: {
-    minHeight: "30px",
-    minWidth: "72px",
-    padding: "4px 14px",
+    minHeight: "26px",
+    minWidth: "60px",
+    padding: "3px 10px",
     fontSize: "10px",
   },
   medium: {
-    minHeight: "40px",
-    minWidth: "96px",
-    padding: "9px 18px",
+    minHeight: "34px",
+    minWidth: "80px",
+    padding: "6px 14px",
     fontSize: "12px",
   },
 };
@@ -31,9 +31,9 @@ const MuiButton = {
           ...buttonSizes.medium,
 
           [theme.breakpoints.down("md")]: {
-            minHeight: "36px",
-            minWidth: "84px",
-            padding: "7px 16px",
+            minHeight: "30px",
+            minWidth: "70px",
+            padding: "5px 12px",
             fontSize: "12px",
           },
         },
