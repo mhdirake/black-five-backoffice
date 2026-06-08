@@ -6,6 +6,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PeopleIcon from "@mui/icons-material/People";
 import { Avatar, Box, Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
@@ -19,6 +20,7 @@ import { useSelector } from "react-redux";
 const navItems = [
   { label: "داشبورد", href: "/", icon: DashboardIcon },
   { label: "حراج‌ها", href: "/auctions", icon: GavelIcon },
+  { label: "کاربران", href: "/users", icon: PeopleIcon },
   { label: "محصولات", href: "/products", icon: Inventory2Icon },
   { label: "دسته‌بندی‌ها", href: "/categories", icon: CategoryIcon },
   { label: "سطوح بلیت", href: "/ticket-levels", icon: ConfirmationNumberIcon },

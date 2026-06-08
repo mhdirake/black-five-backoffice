@@ -2,12 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   InputAdornment,
   Pagination,
   TextField,
@@ -19,6 +24,7 @@ import { productsApi } from "@/store/slices/products/productsApi";
 import { ticketLevelsApi } from "@/store/slices/ticketLevels/ticketLevelsApi";
 import { Table } from "@/components/ui/Table";
 import AuctionFormDialog from "./AuctionFormDialog";
+import { toast } from "react-toastify";
 
 const PAGE_SIZE = 20;
 
@@ -125,6 +131,8 @@ export default function AuctionsPage() {
   const [ticketLevels, setTicketLevels] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAuctions = useCallback(async () => {
     setLoading(true);
@@ -158,6 +166,20 @@ export default function AuctionsPage() {
     ticketLevelsApi.list({ limit: 20 })
       .then((res) => setTicketLevels(res?.results ?? res?.data ?? []))
       .catch(() => {});
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await auctionsApi.delete(deleteTarget.id);
+      toast.success("حراج حذف شد");
+      setDeleteTarget(null);
+      fetchAuctions();
+    } catch {
+      toast.error("خطا در حذف");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const openCreate = () => {
@@ -221,6 +243,12 @@ export default function AuctionsPage() {
             onClick: openEdit,
             sx: { color: "text.disabled", "&:hover": { color: "primary.main" } },
           },
+          {
+            type: "icon",
+            icon: <DeleteOutlineIcon sx={{ fontSize: 17 }} />,
+            onClick: setDeleteTarget,
+            sx: { color: "text.disabled", "&:hover": { color: "error.main" } },
+          },
         ]}
       />
 
@@ -229,6 +257,21 @@ export default function AuctionsPage() {
           <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
         </Box>
       )}
+
+      <Dialog open={!!deleteTarget} onClose={() => !deleting && setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontSize: 15, fontWeight: 700, color: "text.primary" }}>حذف حراج</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: 13.5, color: "text.disabled" }}>
+            آیا از حذف <b style={{ color: "#fff" }}>{deleteTarget?.title}</b> مطمئن هستید؟
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button onClick={() => setDeleteTarget(null)} disabled={deleting} sx={{ color: "text.disabled" }}>انصراف</Button>
+          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleting} sx={{ fontWeight: 700, minWidth: 80 }}>
+            {deleting ? "..." : "حذف"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <AuctionFormDialog
         open={dialogOpen}
