@@ -1,0 +1,14 @@
+services:
+  backoffice:
+    image: b5-backoffice:latest
+    container_name: b5-backoffice
+    restart: always
+    ports:
+      - "127.0.0.1:3002:3000"
+    networks:
+      - server
+
+networks:
+  server:
+    name: server
+    external: true
