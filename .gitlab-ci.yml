@@ -1,0 +1,15 @@
+stages:
+  - deploy
+
+deploy-production:
+  stage: deploy
+  tags:
+    - runner01
+  only:
+    - main
+  script:
+    - cp $ENV_FILE .env
+    - docker build --build-arg NPM_USER=mikdev --build-arg NPM_PASS='1234@qwer' -t b5-backoffice:latest .
+    - docker compose down
+    - docker compose up -d
+    - echo "Deployment complete!"

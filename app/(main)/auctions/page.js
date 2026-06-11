@@ -23,7 +23,6 @@ import {
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { toast } from "react-toastify";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { productsApi } from "@/store/slices/products/productsApi";
 import { Table } from "@/components/ui/Table";
@@ -37,10 +36,10 @@ const TYPE_MAP = {
 };
 
 const STATUS_MAP = {
-  draft:       { label: "پیش‌نویس",      color: "default" },
-  published:   { label: "منتشرشده",     color: "info" },
-  ticket_sale: { label: "فروش بلیت",   color: "primary" },
-  active:      { label: "فعال",          color: "success" },
+  draft:       { label: "پیش‌نویس",     color: "default" },
+  published:   { label: "منتشرشده",    color: "info" },
+  ticket_sale: { label: "فروش بلیت",  color: "primary" },
+  active:      { label: "فعال",         color: "success" },
   running:     { label: "در حال اجرا", color: "warning" },
   ended:       { label: "پایان‌یافته",  color: "error" },
   cancelled:   { label: "لغوشده",       color: "error" },
@@ -168,8 +167,9 @@ export default function AuctionsPage() {
 
   const [products, setProducts] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAuctions = useCallback(async () => {
     setLoading(true);
@@ -198,6 +198,20 @@ export default function AuctionsPage() {
     productsApi.list({ limit: 200 })
       .then((res) => setProducts(res?.data ?? []))
       .catch(() => {});
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await auctionsApi.delete(deleteTarget.id);
+      toast.success("حراج حذف شد");
+      setDeleteTarget(null);
+      fetchAuctions();
+    } catch {
+      toast.error("خطا در حذف");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const openCreate = () => {
@@ -555,12 +569,21 @@ export default function AuctionsPage() {
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-          <Button onClick={closeDialog} disabled={saving} sx={{ color: "text.disabled" }}>انصراف</Button>
-          <SaveButton variant="contained" onClick={handleSave} disabled={saving}>
-            {saving ? "..." : "ذخیره"}
-          </SaveButton>
+          <Button onClick={() => setDeleteTarget(null)} disabled={deleting} sx={{ color: "text.disabled" }}>انصراف</Button>
+          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleting} sx={{ fontWeight: 700, minWidth: 80 }}>
+            {deleting ? "..." : "حذف"}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      <AuctionFormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSaved={fetchAuctions}
+        editTarget={editTarget}
+        products={products}
+        ticketLevels={ticketLevels}
+      />
     </Box>
   );
 }
@@ -579,20 +602,4 @@ const AddButton = styled(Button)(({ theme }) => ({
   borderRadius: 8,
   boxShadow: "0 4px 16px rgba(253,197,0,0.25)",
   "&:hover": { boxShadow: "0 6px 24px rgba(253,197,0,0.35)" },
-}));
-
-const SaveButton = styled(Button)({
-  background: "linear-gradient(135deg, #ffd500, #fdc500)",
-  color: "#00296b",
-  fontWeight: 700,
-  minWidth: 90,
-});
-
-const SectionLabel = styled(Typography)(({ theme }) => ({
-  fontSize: 11,
-  fontWeight: 600,
-  color: theme.palette.text.disabled,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  marginBottom: -theme.spacing(1),
 }));
