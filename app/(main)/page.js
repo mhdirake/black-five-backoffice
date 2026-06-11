@@ -131,7 +131,7 @@ function CardValue({ children, loading, size = "lg" }) {
   );
 }
 
-function SectionLabel({ children, icon: Icon }) {
+export function SectionLabel({ children, icon: Icon }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 2 }}>
       {Icon && <Icon sx={{ fontSize: 15, color: "rgba(255,255,255,0.3)" }} />}
