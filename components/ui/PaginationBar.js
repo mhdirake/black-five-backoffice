@@ -10,17 +10,25 @@ export function PaginationBar({ page, pageSize, total, onPageChange, onPageSizeC
   const to   = Math.min(page * pageSize, total);
 
   return (
-    <Box sx={{ mt: 3, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
-
-      {/* Total + range info */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <Box
+      sx={{
+        mt: 3,
+        display: "grid",
+        gridTemplateColumns: "1fr auto 1fr",
+        alignItems: "center",
+        gap: 2,
+        direction: "rtl",
+      }}
+    >
+      {/* Right slot (RTL: rightmost) — rows per page selector */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, justifyContent: "flex-start" }}>
         <TextField
           select
           size="small"
           value={pageSize}
           onChange={(e) => { onPageSizeChange(Number(e.target.value)); onPageChange(1); }}
           sx={{
-            width: 90,
+            width: 100,
             "& .MuiOutlinedInput-root": { fontSize: 12, borderRadius: 2 },
             "& .MuiSelect-select": { py: "6px" },
           }}
@@ -31,31 +39,34 @@ export function PaginationBar({ page, pageSize, total, onPageChange, onPageSizeC
         </TextField>
 
         {total > 0 && (
-          <Typography sx={{ fontSize: 12, color: "text.disabled", whiteSpace: "nowrap" }}>
-            {from.toLocaleString("en-US")}–{to.toLocaleString("en-US")} از {total.toLocaleString("en-US")}
+          <Typography sx={{ fontSize: 12, color: "text.disabled", whiteSpace: "nowrap", direction: "ltr" }}>
+            {from}–{to} از {total}
           </Typography>
         )}
       </Box>
 
-      {/* Page numbers – centered overall because of space-between + both sides balanced */}
-      {pageCount > 1 && (
-        <Pagination
-          count={pageCount}
-          page={page}
-          onChange={(_, v) => onPageChange(v)}
-          color="primary"
-          shape="rounded"
-          size="small"
-          siblingCount={1}
-          sx={{
-            "& .MuiPaginationItem-root": { fontSize: 12, minWidth: 30, height: 30 },
-            "& .Mui-selected": { fontWeight: 700 },
-          }}
-        />
-      )}
+      {/* Center slot — page numbers */}
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        {pageCount > 1 && (
+          <Pagination
+            count={pageCount}
+            page={page}
+            onChange={(_, v) => onPageChange(v)}
+            color="primary"
+            shape="rounded"
+            size="small"
+            siblingCount={1}
+            sx={{
+              direction: "ltr",
+              "& .MuiPaginationItem-root": { fontSize: 12, minWidth: 30, height: 30 },
+              "& .Mui-selected": { fontWeight: 700 },
+            }}
+          />
+        )}
+      </Box>
 
-      {/* Right spacer – mirrors the left side so pagination stays centered */}
-      <Box sx={{ width: 90, display: { xs: "none", sm: "block" } }} />
+      {/* Left slot (RTL: leftmost) — intentionally empty to balance the grid */}
+      <Box />
     </Box>
   );
 }
