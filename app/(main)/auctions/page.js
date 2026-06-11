@@ -25,6 +25,7 @@ import {
 import { styled } from "@mui/material/styles";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { productsApi } from "@/store/slices/products/productsApi";
+import { ticketLevelsApi } from "@/store/slices/ticketLevels/ticketLevelsApi";
 import { Table } from "@/components/ui/Table";
 import { PaginationBar } from "@/components/ui/PaginationBar";
 import PriceInput from "@/components/ui/PriceInput";
@@ -168,10 +169,13 @@ export default function AuctionsPage() {
   const [statusFilter, setStatusFilter] = useState("");
 
   const [products, setProducts] = useState([]);
+  const [ticketLevels, setTicketLevels] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
 
   const fetchAuctions = useCallback(async () => {
     setLoading(true);
@@ -196,10 +200,14 @@ export default function AuctionsPage() {
   }, [searchInput]);
 
   const loadProducts = () => {
-    if (products.length > 0) return;
-    productsApi.list({ limit: 200 })
-      .then((res) => setProducts(res?.data ?? []))
-      .catch(() => {});
+    if (products.length === 0)
+      productsApi.list({ limit: 200 })
+        .then((res) => setProducts(res?.data ?? []))
+        .catch(() => {});
+    if (ticketLevels.length === 0)
+      ticketLevelsApi.list({ limit: 200 })
+        .then((res) => setTicketLevels(res?.data ?? []))
+        .catch(() => {});
   };
 
   const handleDelete = async () => {
