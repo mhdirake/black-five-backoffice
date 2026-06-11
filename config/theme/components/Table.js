@@ -44,7 +44,6 @@ const MuiTableContainer = {
 
   defaultProps: {
     variant: "contained",
-    disableElevation: true,
   },
 };
 
