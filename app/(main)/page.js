@@ -16,7 +16,6 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import Grid from "@mui/material/Grid2";
 import {
   Box,
-  Chip,
   Paper,
   Skeleton,
   Table,
@@ -26,15 +25,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -83,20 +79,20 @@ const SERIES_LABELS = {
 };
 
 const SERIES_COLORS = {
-  deposits:    "#fdc500",
+  deposits:    "#fbbf24",
   ticket_sales:"#22ab94",
-  withdrawals: "#ff3547",
-  auction_wins:"#4d8ef8",
+  withdrawals: "#f87171",
+  auction_wins:"#60a5fa",
 };
 
 const STATUS_COLORS = {
-  draft:     "#8da9d0",
+  draft:     "#64748b",
   active:    "#22ab94",
-  running:   "#4d8ef8",
-  ended:     "#fdc500",
-  cancelled: "#ff3547",
-  pending:   "#f59e0b",
-  finished:  "#22ab94",
+  running:   "#60a5fa",
+  ended:     "#94a3b8",
+  cancelled: "#f87171",
+  pending:   "#fb923c",
+  finished:  "#4ade80",
 };
 
 const STATUS_LABELS = {
@@ -111,39 +107,52 @@ const STATUS_LABELS = {
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
-function SectionHeading({ children, icon: Icon, action }) {
+function CardLabel({ children }) {
   return (
-    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        {Icon && (
-          <Box sx={{
-            width: 30, height: 30, borderRadius: "8px",
-            background: "rgba(253,197,0,0.12)", border: "1px solid rgba(253,197,0,0.2)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Icon sx={{ fontSize: 16, color: "secondary.main" }} />
-          </Box>
-        )}
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: "text.primary", letterSpacing: "0.01em" }}>
-          {children}
-        </Typography>
-      </Box>
-      {action}
+    <Typography sx={{ fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,0.38)", letterSpacing: "0.05em", mb: 0.75 }}>
+      {children}
+    </Typography>
+  );
+}
+
+function CardValue({ children, loading, size = "lg" }) {
+  if (loading) return <Skeleton variant="text" width={70} height={size === "lg" ? 36 : 28} sx={{ bgcolor: "rgba(255,255,255,0.05)", borderRadius: 1 }} />;
+  return (
+    <Typography sx={{
+      fontSize: size === "lg" ? 28 : 20,
+      fontWeight: 800,
+      color: "rgba(255,255,255,0.95)",
+      lineHeight: 1,
+      direction: "ltr",
+      letterSpacing: "-0.02em",
+    }}>
+      {children}
+    </Typography>
+  );
+}
+
+function SectionLabel({ children, icon: Icon }) {
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 2 }}>
+      {Icon && <Icon sx={{ fontSize: 15, color: "rgba(255,255,255,0.3)" }} />}
+      <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+        {children}
+      </Typography>
     </Box>
   );
 }
 
 function EmptyState({ message = "موردی برای نمایش وجود ندارد" }) {
   return (
-    <Box sx={{ py: 4, display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5 }}>
+    <Box sx={{ py: 3.5, display: "flex", flexDirection: "column", alignItems: "center", gap: 1.25 }}>
       <Box sx={{
-        width: 44, height: 44, borderRadius: "12px",
-        background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+        width: 36, height: 36, borderRadius: "10px",
+        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
-        <InboxOutlinedIcon sx={{ fontSize: 22, color: "text.disabled" }} />
+        <InboxOutlinedIcon sx={{ fontSize: 18, color: "rgba(255,255,255,0.2)" }} />
       </Box>
-      <Typography sx={{ fontSize: 12, color: "text.disabled" }}>{message}</Typography>
+      <Typography sx={{ fontSize: 11.5, color: "rgba(255,255,255,0.25)" }}>{message}</Typography>
     </Box>
   );
 }
@@ -152,16 +161,17 @@ function RevenueTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <Box sx={{
-      background: "#000e24", border: "1px solid rgba(253,197,0,0.25)",
-      borderRadius: "10px", p: "12px 16px", boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
-      backdropFilter: "blur(12px)",
+      background: "#000c1e",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "10px", p: "10px 14px",
+      boxShadow: "0 12px 40px rgba(0,0,0,0.7)",
     }}>
-      <Typography sx={{ fontSize: 10, color: "text.disabled", mb: 1.5, direction: "ltr", letterSpacing: "0.03em" }}>{label}</Typography>
+      <Typography sx={{ fontSize: 10, color: "rgba(255,255,255,0.35)", mb: 1.25, direction: "ltr" }}>{label}</Typography>
       {payload.map((p) => (
-        <Box key={p.dataKey} sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 0.75 }}>
-          <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: p.color, flexShrink: 0, boxShadow: `0 0 6px ${p.color}80` }} />
-          <Typography sx={{ fontSize: 12, color: "rgba(255,255,255,0.85)", direction: "ltr", fontWeight: 500 }}>
-            <span style={{ color: "rgba(255,255,255,0.45)", marginLeft: 4 }}>{SERIES_LABELS[p.dataKey]}:</span>
+        <Box key={p.dataKey} sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 0.6 }}>
+          <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: p.color, flexShrink: 0 }} />
+          <Typography sx={{ fontSize: 11.5, color: "rgba(255,255,255,0.8)", direction: "ltr" }}>
+            <span style={{ color: "rgba(255,255,255,0.35)", marginLeft: 4 }}>{SERIES_LABELS[p.dataKey]}:</span>
             {" "}{fmtFull(p.value)}
           </Typography>
         </Box>
@@ -170,166 +180,100 @@ function RevenueTooltip({ active, payload, label }) {
   );
 }
 
-// Primary KPI card — large emphasis
+// Compact metric pill — used for secondary row
+function MetricPill({ icon: Icon, label, value, colorKey = "info", loading }) {
+  return (
+    <MetricPillRoot colorKey={colorKey}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <PillIcon colorKey={colorKey}>
+          <Icon sx={{ fontSize: 16, color: `${colorKey}.main` }} />
+        </PillIcon>
+        <Box>
+          <CardLabel>{label}</CardLabel>
+          <CardValue loading={loading} size="sm">{value}</CardValue>
+        </Box>
+      </Box>
+    </MetricPillRoot>
+  );
+}
+
+// Primary KPI card
 function PrimaryKpiCard({ icon: Icon, label, value, colorKey = "secondary", loading, accent }) {
   return (
     <PrimaryCardRoot colorKey={colorKey} accent={accent ? 1 : 0}>
-      <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 3 }}>
-        <IconBadge colorKey={colorKey}>
-          <Icon sx={{ fontSize: 22, color: `${colorKey}.main` }} />
-        </IconBadge>
+      <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
+        <KpiIcon colorKey={colorKey}>
+          <Icon sx={{ fontSize: 18, color: `${colorKey}.main` }} />
+        </KpiIcon>
         {accent && (
           <Box sx={{
-            px: 1.25, py: 0.4, borderRadius: "6px",
-            background: "rgba(253,197,0,0.12)", border: "1px solid rgba(253,197,0,0.2)",
+            px: 1, py: 0.3, borderRadius: "5px",
+            background: "rgba(253,197,0,0.1)", border: "1px solid rgba(253,197,0,0.18)",
           }}>
-            <Typography sx={{ fontSize: 9, fontWeight: 700, color: "secondary.main", letterSpacing: "0.06em" }}>PRIME</Typography>
+            <Typography sx={{ fontSize: 8.5, fontWeight: 700, color: "#fdc500", letterSpacing: "0.06em" }}>TOP</Typography>
           </Box>
         )}
       </Box>
-      <Typography sx={{ fontSize: 10.5, fontWeight: 600, color: "text.disabled", mb: 1, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-        {label}
-      </Typography>
-      {loading ? (
-        <Skeleton variant="text" width={80} height={42} sx={{ bgcolor: "rgba(255,255,255,0.05)", borderRadius: 1 }} />
-      ) : (
-        <Typography sx={{ fontSize: 32, fontWeight: 800, color: "text.primary", lineHeight: 1, direction: "ltr", letterSpacing: "-0.02em" }}>
-          {value}
-        </Typography>
-      )}
+      <CardLabel>{label}</CardLabel>
+      <CardValue loading={loading}>{value}</CardValue>
     </PrimaryCardRoot>
-  );
-}
-
-// Secondary KPI card — compact
-function SecondaryKpiCard({ icon: Icon, label, value, colorKey = "info", loading }) {
-  return (
-    <SecondaryCardRoot colorKey={colorKey}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <SmallIconBadge colorKey={colorKey}>
-          <Icon sx={{ fontSize: 18, color: `${colorKey}.main` }} />
-        </SmallIconBadge>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 10, fontWeight: 500, color: "text.disabled", mb: 0.5, letterSpacing: "0.04em" }}>
-            {label}
-          </Typography>
-          {loading ? (
-            <Skeleton variant="text" width={60} height={28} sx={{ bgcolor: "rgba(255,255,255,0.05)", borderRadius: 1 }} />
-          ) : (
-            <Typography sx={{ fontSize: 22, fontWeight: 700, color: "text.primary", lineHeight: 1, direction: "ltr", letterSpacing: "-0.01em" }}>
-              {value}
-            </Typography>
-          )}
-        </Box>
-      </Box>
-    </SecondaryCardRoot>
-  );
-}
-
-// Operational counter card — smallest
-function CounterCard({ icon: Icon, label, value, colorKey, loading }) {
-  return (
-    <CounterCardRoot colorKey={colorKey}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ flex: 1 }}>
-          <Typography sx={{ fontSize: 10, color: "text.disabled", mb: 0.75, fontWeight: 500 }}>{label}</Typography>
-          {loading ? (
-            <Skeleton variant="text" width={44} height={32} sx={{ bgcolor: "rgba(255,255,255,0.05)", borderRadius: 1 }} />
-          ) : (
-            <Typography sx={{ fontSize: 26, fontWeight: 800, color: "text.primary", lineHeight: 1 }}>{value}</Typography>
-          )}
-        </Box>
-        <TinyIcon colorKey={colorKey}>
-          <Icon sx={{ fontSize: 16, color: `${colorKey}.main` }} />
-        </TinyIcon>
-      </Box>
-    </CounterCardRoot>
-  );
-}
-
-// Alert row for operational widgets
-function AlertRow({ label, sub, accent, warning }) {
-  const bg = accent
-    ? "rgba(255,53,71,0.06)"
-    : warning
-    ? "rgba(245,158,11,0.06)"
-    : "rgba(255,255,255,0.025)";
-  const border = accent
-    ? "rgba(255,53,71,0.18)"
-    : warning
-    ? "rgba(245,158,11,0.18)"
-    : "rgba(255,255,255,0.07)";
-  const textColor = accent ? "#ff3547" : warning ? "#f59e0b" : "text.primary";
-  return (
-    <Box sx={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
-      py: 1.1, px: 1.5, borderRadius: "8px",
-      background: bg, border: "1px solid", borderColor: border, mb: 0.75,
-      transition: "background 180ms",
-      "&:hover": { background: accent ? "rgba(255,53,71,0.09)" : "rgba(255,255,255,0.04)" },
-    }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        {(accent || warning) && (
-          <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: accent ? "error.main" : "#f59e0b", flexShrink: 0 }} />
-        )}
-        <Typography sx={{ fontSize: 12, color: textColor, fontWeight: 500 }}>{label}</Typography>
-      </Box>
-      {sub && <Typography sx={{ fontSize: 11, color: "text.disabled" }}>{sub}</Typography>}
-    </Box>
   );
 }
 
 // Status badge
 function StatusBadge({ status }) {
-  const color = STATUS_COLORS[status] ?? "#8da9d0";
+  const color = STATUS_COLORS[status] ?? "#64748b";
   const label = STATUS_LABELS[status] ?? status;
   return (
     <Box sx={{
-      display: "inline-flex", alignItems: "center", gap: 0.6,
-      px: 1, py: 0.35, borderRadius: "6px",
-      background: color + "16", border: `1px solid ${color}30`,
+      display: "inline-flex", alignItems: "center", gap: 0.5,
+      px: 0.9, py: 0.3, borderRadius: "5px",
+      background: color + "14", border: `1px solid ${color}28`,
     }}>
-      <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />
-      <Typography sx={{ fontSize: 10.5, fontWeight: 600, color, letterSpacing: "0.02em" }}>{label}</Typography>
+      <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />
+      <Typography sx={{ fontSize: 10, fontWeight: 600, color, letterSpacing: "0.02em" }}>{label}</Typography>
     </Box>
   );
 }
 
-// Auction status horizontal bar widget
+// Auction status bars
 function AuctionStatusBars({ data, loading }) {
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
   if (loading) {
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} variant="rounded" height={36} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: 1 }} />
+          <Skeleton key={i} variant="rounded" height={28} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: 1 }} />
         ))}
       </Box>
     );
   }
   if (!data.length) return <EmptyState />;
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {data.map(({ name, value }) => {
-        const color = STATUS_COLORS[name] ?? "#8da9d0";
+        const color = STATUS_COLORS[name] ?? "#64748b";
         const label = STATUS_LABELS[name] ?? name;
         const pct = Math.round((value / total) * 100);
         return (
           <Box key={name}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.6 }}>
-              <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: "text.secondary" }}>{label}</Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography sx={{ fontSize: 11, color: "text.disabled" }}>{pct}%</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: "text.primary", minWidth: 20, textAlign: "right" }}>{value}</Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.7 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: "rgba(255,255,255,0.65)" }}>{label}</Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Typography sx={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)" }}>{pct}%</Typography>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)", minWidth: 18, textAlign: "right" }}>{value}</Typography>
               </Box>
             </Box>
-            <Box sx={{ height: 6, borderRadius: "4px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+            <Box sx={{ height: 5, borderRadius: "3px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
               <Box sx={{
-                height: "100%", borderRadius: "4px",
+                height: "100%", borderRadius: "3px",
                 width: `${pct}%`,
-                background: `linear-gradient(to left, ${color}, ${color}88)`,
-                transition: "width 600ms cubic-bezier(.4,0,.2,1)",
-                boxShadow: `0 0 8px ${color}40`,
+                background: color,
+                opacity: 0.75,
+                transition: "width 700ms cubic-bezier(.4,0,.2,1)",
               }} />
             </Box>
           </Box>
@@ -339,12 +283,32 @@ function AuctionStatusBars({ data, loading }) {
   );
 }
 
+// Compact alert list row
+function AlertListRow({ label, sub, variant = "default" }) {
+  const dotColor = variant === "danger" ? "#f87171" : variant === "warning" ? "#fb923c" : "rgba(255,255,255,0.2)";
+  return (
+    <Box sx={{
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      py: 0.9, gap: 1.5,
+      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      "&:last-child": { borderBottom: "none" },
+      "&:hover": { "& .alert-label": { color: "rgba(255,255,255,0.85)" } },
+      transition: "all 150ms",
+    }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+        <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: dotColor, flexShrink: 0 }} />
+        <Typography className="alert-label" sx={{ fontSize: 12, color: variant === "danger" ? "#f87171" : "rgba(255,255,255,0.65)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</Typography>
+      </Box>
+      {sub && <Typography sx={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>{sub}</Typography>}
+    </Box>
+  );
+}
+
 // ─── Main Dashboard ─────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const userName = session?.user?.name;
-  const theme = useTheme();
 
   const [days, setDays]               = useState(30);
   const [overview, setOverview]       = useState(null);
@@ -353,8 +317,8 @@ export default function DashboardPage() {
   const [operations, setOperations]   = useState(null);
   const [loading, setLoading]         = useState(true);
 
-  const gridColor = "rgba(255,255,255,0.04)";
-  const axisColor = "rgba(255,255,255,0.2)";
+  const GRID_COLOR = "rgba(255,255,255,0.06)";
+  const AXIS_COLOR = "rgba(255,255,255,0.32)";
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -378,34 +342,32 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const cards          = overview?.cards ?? {};
-  const revenueChartData = revenue?.series ? mergeSeries(revenue.series) : [];
+  const cards             = overview?.cards ?? {};
+  const revenueChartData  = revenue?.series ? mergeSeries(revenue.series) : [];
   const auctionStatusData = (auctionData?.status ?? []).map((r) => ({ name: r.status, value: r.count }));
 
-  const alerts        = operations?.alerts ?? {};
-  const stalePending  = alerts.stale_pending_kyc     ?? [];
-  const failedPayments = alerts.failed_payments      ?? [];
-  const lowInventory  = alerts.low_ticket_inventory  ?? [];
-  const activityFeed  = operations?.activity_feed    ?? [];
+  const alerts         = operations?.alerts ?? {};
+  const stalePending   = alerts.stale_pending_kyc    ?? [];
+  const failedPayments = alerts.failed_payments       ?? [];
+  const lowInventory   = alerts.low_ticket_inventory  ?? [];
+  const activityFeed   = operations?.activity_feed    ?? [];
 
   return (
-    <Box sx={{ pb: 6 }}>
+    <Box sx={{ pb: 5 }}>
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* ── Header ── */}
       <PageHeader>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: "secondary.main", mb: 1, letterSpacing: "0.1em", opacity: 0.9 }}>
+        <Box sx={{ flex: 1 }}>
+          <Typography sx={{ fontSize: 10, fontWeight: 700, color: "rgba(253,197,0,0.7)", mb: 0.75, letterSpacing: "0.12em" }}>
             BLACK FIVE · پنل مدیریت
           </Typography>
-          <Typography sx={{ fontSize: 26, fontWeight: 800, color: "text.primary", lineHeight: 1.25, mb: 0.75, letterSpacing: "-0.01em" }}>
+          <Typography sx={{ fontSize: 22, fontWeight: 800, color: "rgba(255,255,255,0.95)", lineHeight: 1.25, mb: 0.5, letterSpacing: "-0.01em" }}>
             {userName ? `خوش آمدید، ${userName}` : "داشبورد"}
           </Typography>
-          <Typography sx={{ fontSize: 13, color: "text.disabled", fontWeight: 400 }}>
+          <Typography sx={{ fontSize: 12.5, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>
             نمای کلی عملکرد پلتفرم در بازه انتخابی
           </Typography>
         </Box>
-
-        {/* Period selector */}
         <PeriodSelector>
           {PERIODS.map(({ label, value }) => (
             <PeriodButton key={value} active={days === value ? 1 : 0} onClick={() => setDays(value)}>
@@ -415,115 +377,80 @@ export default function DashboardPage() {
         </PeriodSelector>
       </PageHeader>
 
-      {/* ── Primary KPI Row ────────────────────────────────────────────── */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <PrimaryKpiCard
-            icon={TrendingUpIcon}
-            label="ارزش کل معاملات (GMV)"
-            value={fmt(cards.gross_merchandise_value)}
-            colorKey="secondary"
-            loading={loading}
-            accent
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <PrimaryKpiCard
-            icon={PaymentsOutlinedIcon}
-            label="درآمد واریزها"
-            value={fmt(cards.deposit_revenue)}
-            colorKey="info"
-            loading={loading}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <PrimaryKpiCard
-            icon={ConfirmationNumberOutlinedIcon}
-            label="درآمد فروش بلیت"
-            value={fmt(cards.ticket_revenue)}
-            colorKey="success"
-            loading={loading}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <PrimaryKpiCard
-            icon={MonetizationOnOutlinedIcon}
-            label="موجودی خالص"
-            value={fmt(cards.net_cash_position)}
-            colorKey="secondary"
-            loading={loading}
-          />
-        </Grid>
+      {/* ── Primary KPIs — 4 equal columns ── */}
+      <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+        {[
+          { icon: TrendingUpIcon,                  label: "ارزش کل معاملات (GMV)",   value: fmt(cards.gross_merchandise_value), colorKey: "secondary", accent: true },
+          { icon: PaymentsOutlinedIcon,             label: "درآمد واریزها",            value: fmt(cards.deposit_revenue),         colorKey: "info" },
+          { icon: ConfirmationNumberOutlinedIcon,   label: "درآمد فروش بلیت",         value: fmt(cards.ticket_revenue),          colorKey: "success" },
+          { icon: MonetizationOnOutlinedIcon,       label: "موجودی خالص",             value: fmt(cards.net_cash_position),       colorKey: "secondary" },
+        ].map((card, i) => (
+          <Grid key={i} size={{ xs: 12, sm: 6, lg: 3 }}>
+            <PrimaryKpiCard {...card} loading={loading} />
+          </Grid>
+        ))}
       </Grid>
 
-      {/* ── Secondary KPI Row ──────────────────────────────────────────── */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <SecondaryKpiCard
-            icon={AccountBalanceWalletOutlinedIcon}
-            label="موجودی کیف‌پول‌های فعال"
-            value={fmt(cards.active_wallet_balance)}
-            colorKey="info"
-            loading={loading}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <SecondaryKpiCard
-            icon={StorefrontOutlinedIcon}
-            label="برداشت خروجی"
-            value={fmt(cards.withdrawal_outflow)}
-            colorKey="error"
-            loading={loading}
-          />
-        </Grid>
-        {/* Operational counters side by side in remaining column */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, height: "100%" }}>
-            <CounterCard icon={GavelIcon}              label="حراج‌های در حال اجرا"      value={cards.running_auctions   ?? "—"} colorKey="success" loading={loading} />
-            <CounterCard icon={AssignmentIndOutlinedIcon} label="احراز هویت در انتظار"   value={cards.pending_kyc         ?? "—"} colorKey="warning" loading={loading} />
-            <CounterCard icon={HourglassEmptyIcon}     label="درخواست برداشت در انتظار" value={cards.pending_withdrawals ?? "—"} colorKey="error"   loading={loading} />
+      {/* ── Secondary KPIs — 5 compact pills ── */}
+      <Grid container spacing={1.75} sx={{ mb: 3 }}>
+        {[
+          { icon: AccountBalanceWalletOutlinedIcon, label: "موجودی کیف‌پول‌های فعال",   value: fmt(cards.active_wallet_balance),  colorKey: "info" },
+          { icon: StorefrontOutlinedIcon,           label: "برداشت خروجی",               value: fmt(cards.withdrawal_outflow),     colorKey: "error" },
+          { icon: GavelIcon,                        label: "حراج‌های در حال اجرا",       value: cards.running_auctions   ?? "—",   colorKey: "success" },
+          { icon: AssignmentIndOutlinedIcon,        label: "احراز هویت در انتظار",       value: cards.pending_kyc         ?? "—",  colorKey: "warning" },
+          { icon: HourglassEmptyIcon,               label: "درخواست برداشت در انتظار",  value: cards.pending_withdrawals ?? "—",  colorKey: "error" },
+        ].map((card, i) => (
+          <Grid key={i} size={{ xs: 6, sm: 4, md: "grow" }}>
+            <MetricPill {...card} loading={loading} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* ── Revenue Chart ── */}
+      <WidgetCard sx={{ mb: 2.5 }}>
+        {/* Header row */}
+        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 2, mb: 2.5 }}>
+          <Box>
+            <SectionLabel>روند درآمد و تراکنش‌ها</SectionLabel>
           </Box>
-        </Grid>
-      </Grid>
-
-      {/* ── Revenue Trend Chart ────────────────────────────────────────── */}
-      <WidgetCard sx={{ mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2, mb: 3 }}>
-          <SectionHeading>روند درآمد و تراکنش‌ها</SectionHeading>
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
             {Object.entries(SERIES_LABELS).map(([key, label]) => (
-              <Box key={key} sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                <Box sx={{ width: 20, height: 3, borderRadius: 2, bgcolor: SERIES_COLORS[key], boxShadow: `0 0 6px ${SERIES_COLORS[key]}60` }} />
-                <Typography sx={{ fontSize: 11, color: "text.disabled" }}>{label}</Typography>
+              <Box key={key} sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
+                <Box sx={{ width: 16, height: 2.5, borderRadius: 2, bgcolor: SERIES_COLORS[key] }} />
+                <Typography sx={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)" }}>{label}</Typography>
               </Box>
             ))}
           </Box>
         </Box>
 
         {loading ? (
-          <Skeleton variant="rounded" height={240} sx={{ bgcolor: "rgba(255,255,255,0.03)", borderRadius: 2 }} />
+          <Skeleton variant="rounded" height={200} sx={{ bgcolor: "rgba(255,255,255,0.03)", borderRadius: 2 }} />
+        ) : revenueChartData.length === 0 ? (
+          <Box sx={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <EmptyState message="داده‌ای در این بازه وجود ندارد" />
+          </Box>
         ) : (
           <Box sx={{ direction: "ltr" }}>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={revenueChartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={revenueChartData} margin={{ top: 2, right: 2, left: 0, bottom: 0 }}>
                 <defs>
                   {Object.entries(SERIES_COLORS).map(([key, color]) => (
                     <linearGradient key={key} id={`grad_${key}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity={0.22} />
-                      <stop offset="85%" stopColor={color} stopOpacity={0} />
+                      <stop offset="0%" stopColor={color} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={color} stopOpacity={0} />
                     </linearGradient>
                   ))}
                 </defs>
-                <CartesianGrid stroke={gridColor} vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: axisColor, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: axisColor, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => fmt(v)} width={48} />
-                <Tooltip content={<RevenueTooltip />} cursor={{ stroke: "rgba(255,255,255,0.05)", strokeWidth: 1 }} />
+                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: AXIS_COLOR, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fill: AXIS_COLOR, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={fmt} width={44} />
+                <Tooltip content={<RevenueTooltip />} cursor={{ stroke: "rgba(255,255,255,0.08)", strokeWidth: 1 }} />
                 {Object.keys(SERIES_COLORS).map((key) => (
                   <Area
                     key={key} type="monotone" dataKey={key}
-                    stroke={SERIES_COLORS[key]} strokeWidth={1.8}
+                    stroke={SERIES_COLORS[key]} strokeWidth={2}
                     fill={`url(#grad_${key})`} dot={false}
-                    activeDot={{ r: 4, strokeWidth: 0, fill: SERIES_COLORS[key] }}
+                    activeDot={{ r: 3.5, strokeWidth: 0, fill: SERIES_COLORS[key] }}
                   />
                 ))}
               </AreaChart>
@@ -532,30 +459,31 @@ export default function DashboardPage() {
         )}
       </WidgetCard>
 
-      {/* ── Auctions Section ───────────────────────────────────────────── */}
-      <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        {/* Top Auctions Table */}
+      {/* ── Auctions ── */}
+      <Grid container spacing={2} sx={{ mb: 2.5 }}>
+        {/* Top Auctions */}
         <Grid size={{ xs: 12, lg: 8 }}>
           <WidgetCard>
-            <SectionHeading icon={GavelIcon}>برترین حراج‌ها</SectionHeading>
+            <SectionLabel icon={GavelIcon}>برترین حراج‌ها</SectionLabel>
             {loading ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} variant="rounded" height={42} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: "8px" }} />
+                  <Skeleton key={i} variant="rounded" height={38} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: 1 }} />
                 ))}
               </Box>
             ) : (auctionData?.top_auctions ?? []).length === 0 ? (
               <EmptyState message="حراجی ثبت نشده" />
             ) : (
               <Box sx={{ overflow: "auto" }}>
-                <Table size="small" sx={{ minWidth: 480 }}>
+                <Table size="small" sx={{ minWidth: 460 }}>
                   <TableHead>
                     <TableRow>
                       {["عنوان حراج", "وضعیت", "دوره‌ها", "بلیت فروخته‌شده", "GMV"].map((h) => (
                         <TableCell key={h} align="right" sx={{
-                          fontSize: 10.5, color: "text.disabled", fontWeight: 700,
+                          fontSize: 10, color: "rgba(255,255,255,0.3)",
+                          fontWeight: 700, letterSpacing: "0.05em",
                           borderBottom: "1px solid rgba(255,255,255,0.06)",
-                          pb: 1.25, pt: 0, letterSpacing: "0.04em",
+                          pb: 1, pt: 0,
                         }}>
                           {h}
                         </TableCell>
@@ -565,36 +493,39 @@ export default function DashboardPage() {
                   <TableBody>
                     {(auctionData?.top_auctions ?? []).map((row, idx) => (
                       <TableRow key={row.id} sx={{
-                        borderRadius: "8px",
-                        "&:hover td": { background: "rgba(255,255,255,0.025)" },
-                        "&:hover td:first-of-type": { borderRadius: "8px 0 0 8px" },
-                        "&:hover td:last-of-type": { borderRadius: "0 8px 8px 0" },
                         "&:last-child td": { border: 0 },
-                        cursor: "pointer",
+                        "&:hover td": { background: "rgba(255,255,255,0.02)" },
+                        cursor: "default",
                       }}>
-                        <TableCell align="right" sx={{ fontSize: 12.5, fontWeight: 600, color: "text.primary", border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.35, transition: "background 150ms" }}>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                            <Box sx={{
-                              width: 24, height: 24, borderRadius: "6px", flexShrink: 0,
-                              background: "rgba(253,197,0,0.1)", border: "1px solid rgba(253,197,0,0.15)",
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              fontSize: 10, fontWeight: 700, color: "secondary.main",
+                        <TableCell align="right" sx={{ border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.1, transition: "background 120ms" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                            <Typography sx={{
+                              fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)",
+                              minWidth: 18, lineHeight: 1,
                             }}>
                               {idx + 1}
-                            </Box>
-                            {row.title}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>
+                              {row.title}
+                            </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell align="right" sx={{ border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.35, transition: "background 150ms" }}>
+                        <TableCell align="right" sx={{ border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.1, transition: "background 120ms" }}>
                           <StatusBadge status={row.status} />
                         </TableCell>
-                        <TableCell align="right" sx={{ fontSize: 12.5, fontWeight: 500, color: "text.secondary", border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.35, transition: "background 150ms" }}>{row.runs_count ?? 0}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: 12.5, fontWeight: 500, color: "text.secondary", border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.35, transition: "background 150ms" }}>{row.tickets_sold ?? 0}</TableCell>
-                        <TableCell align="right" sx={{ border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.35, transition: "background 150ms" }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "secondary.main", direction: "ltr", display: "inline-block" }}>
-                            {fmt(row.gmv)}
-                            <span style={{ fontSize: 10, fontWeight: 400, color: "rgba(255,255,255,0.35)", marginLeft: 3 }}>T</span>
-                          </Typography>
+                        <TableCell align="right" sx={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.1, transition: "background 120ms" }}>
+                          {row.runs_count ?? 0}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.1, transition: "background 120ms" }}>
+                          {row.tickets_sold ?? 0}
+                        </TableCell>
+                        <TableCell align="right" sx={{ border: 0, borderBottom: "1px solid rgba(255,255,255,0.04)", py: 1.1, transition: "background 120ms" }}>
+                          <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5, justifyContent: "flex-end", direction: "ltr" }}>
+                            <Typography sx={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>
+                              {fmt(row.gmv)}
+                            </Typography>
+                            <Typography sx={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>T</Typography>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -605,71 +536,64 @@ export default function DashboardPage() {
           </WidgetCard>
         </Grid>
 
-        {/* Auction Status Bars */}
+        {/* Auction Status */}
         <Grid size={{ xs: 12, lg: 4 }}>
           <WidgetCard>
-            <SectionHeading>وضعیت حراج‌ها</SectionHeading>
+            <SectionLabel>وضعیت حراج‌ها</SectionLabel>
             <AuctionStatusBars data={auctionStatusData} loading={loading} />
           </WidgetCard>
         </Grid>
       </Grid>
 
-      {/* ── Operational Alerts ─────────────────────────────────────────── */}
-      <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        {/* Stale KYC */}
+      {/* ── Alerts ── */}
+      <Grid container spacing={2} sx={{ mb: 2.5 }}>
+        {/* KYC */}
         <Grid size={{ xs: 12, md: 4 }}>
           <WidgetCard>
-            <SectionHeading icon={AssignmentIndOutlinedIcon}>احراز هویت معلق</SectionHeading>
+            <SectionLabel icon={AssignmentIndOutlinedIcon}>احراز هویت معلق</SectionLabel>
             {loading ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="rounded" height={36} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: "8px" }} />)}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="rounded" height={30} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: 1 }} />)}
               </Box>
-            ) : stalePending.length === 0 ? (
-              <EmptyState />
-            ) : (
+            ) : stalePending.length === 0 ? <EmptyState /> : (
               stalePending.map((k) => (
-                <AlertRow key={k.id} label={k.username} sub={k.level ? `سطح ${k.level}` : undefined} warning />
+                <AlertListRow key={k.id} label={k.username} sub={k.level ? `سطح ${k.level}` : undefined} variant="warning" />
               ))
             )}
           </WidgetCard>
         </Grid>
 
-        {/* Failed payments */}
+        {/* Failed Payments */}
         <Grid size={{ xs: 12, md: 4 }}>
           <WidgetCard>
-            <SectionHeading icon={ErrorOutlineIcon}>پرداخت‌های ناموفق</SectionHeading>
+            <SectionLabel icon={ErrorOutlineIcon}>پرداخت‌های ناموفق</SectionLabel>
             {loading ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="rounded" height={36} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: "8px" }} />)}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="rounded" height={30} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: 1 }} />)}
               </Box>
-            ) : failedPayments.length === 0 ? (
-              <EmptyState />
-            ) : (
+            ) : failedPayments.length === 0 ? <EmptyState /> : (
               failedPayments.map((p) => (
-                <AlertRow key={p.id} label={p.username} sub={fmt(p.amount) + " T"} accent />
+                <AlertListRow key={p.id} label={p.username} sub={fmt(p.amount) + " T"} variant="danger" />
               ))
             )}
           </WidgetCard>
         </Grid>
 
-        {/* Low inventory */}
+        {/* Low Inventory */}
         <Grid size={{ xs: 12, md: 4 }}>
           <WidgetCard>
-            <SectionHeading icon={WarningAmberOutlinedIcon}>موجودی پایین بلیت</SectionHeading>
+            <SectionLabel icon={WarningAmberOutlinedIcon}>موجودی پایین بلیت</SectionLabel>
             {loading ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="rounded" height={36} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: "8px" }} />)}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="rounded" height={30} sx={{ bgcolor: "rgba(255,255,255,0.04)", borderRadius: 1 }} />)}
               </Box>
-            ) : lowInventory.length === 0 ? (
-              <EmptyState />
-            ) : (
+            ) : lowInventory.length === 0 ? <EmptyState /> : (
               lowInventory.map((t, i) => (
-                <AlertRow
+                <AlertListRow
                   key={i}
                   label={t.auction_title}
-                  sub={`سطح ${t.level} · ${t.sold_quantity}/${t.stock_quantity}`}
-                  warning={t.sold_quantity < t.stock_quantity}
-                  accent={t.sold_quantity >= t.stock_quantity}
+                  sub={`${t.sold_quantity}/${t.stock_quantity}`}
+                  variant={t.sold_quantity >= t.stock_quantity ? "danger" : "warning"}
                 />
               ))
             )}
@@ -677,60 +601,60 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      {/* ── Activity Feed ──────────────────────────────────────────────── */}
+      {/* ── Activity Feed ── */}
       <WidgetCard>
-        <SectionHeading>آخرین فعالیت‌ها</SectionHeading>
+        <SectionLabel>آخرین فعالیت‌ها</SectionLabel>
         {loading ? (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-            {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} variant="rounded" height={44} sx={{ bgcolor: "rgba(255,255,255,0.03)", borderRadius: "8px" }} />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} variant="rounded" height={34} sx={{ bgcolor: "rgba(255,255,255,0.03)", borderRadius: 1 }} />
             ))}
           </Box>
         ) : activityFeed.length === 0 ? (
           <EmptyState message="فعالیتی ثبت نشده" />
         ) : (
-          <Box>
+          <Box sx={{ position: "relative" }}>
+            {/* Vertical line */}
+            <Box sx={{
+              position: "absolute",
+              right: 8, top: 8, bottom: 8, width: "1px",
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.02))",
+              zIndex: 0,
+            }} />
             {activityFeed.map((log, idx) => {
               const modelName = log.auditable_type?.replace(/^App\\Models\\/, "") ?? "";
               const date = new Date(log.created_at).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-              const isLast = idx === activityFeed.length - 1;
               return (
-                <Box key={log.id} sx={{ display: "flex", gap: 2, position: "relative" }}>
-                  {/* Timeline line */}
-                  {!isLast && (
-                    <Box sx={{ position: "absolute", right: 11, top: 28, bottom: 0, width: 1, background: "rgba(255,255,255,0.06)", zIndex: 0 }} />
-                  )}
+                <Box key={log.id} sx={{ display: "flex", gap: 2.5, position: "relative", py: 0.85,
+                  "&:last-child .feed-bottom": { pb: 0 },
+                }}>
                   {/* Dot */}
                   <Box sx={{
-                    width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
-                    background: "rgba(77,142,248,0.12)", border: "1.5px solid rgba(77,142,248,0.25)",
+                    width: 17, height: 17, borderRadius: "50%", flexShrink: 0,
+                    background: "#000e24",
+                    border: "1.5px solid rgba(96,165,250,0.3)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    mt: 1.25, position: "relative", zIndex: 1,
+                    mt: 0.35, position: "relative", zIndex: 1,
                   }}>
-                    <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#4d8ef8" }} />
+                    <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "#60a5fa", opacity: 0.8 }} />
                   </Box>
                   {/* Content */}
-                  <Box sx={{
-                    flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-                    py: 1.25, pb: isLast ? 0 : 1.75, gap: 2, flexWrap: "wrap",
-                  }}>
-                    <Box>
-                      <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: "text.primary", mb: 0.25 }}>{log.action}</Typography>
+                  <Box className="feed-bottom" sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, flexWrap: "wrap" }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>{log.action}</Typography>
                       {modelName && (
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Box sx={{
-                            px: 0.85, py: 0.2, borderRadius: "4px",
-                            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
-                          }}>
-                            <Typography sx={{ fontSize: 9.5, color: "text.disabled", fontWeight: 600, letterSpacing: "0.04em" }}>{modelName}</Typography>
-                          </Box>
-                          {log.actor && (
-                            <Typography sx={{ fontSize: 11, color: "text.disabled" }}>توسط {log.actor}</Typography>
-                          )}
+                        <Box sx={{
+                          px: 0.75, py: 0.15, borderRadius: "4px",
+                          background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)",
+                        }}>
+                          <Typography sx={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.04em" }}>{modelName}</Typography>
                         </Box>
                       )}
+                      {log.actor && (
+                        <Typography sx={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{log.actor}</Typography>
+                      )}
                     </Box>
-                    <Typography sx={{ fontSize: 10.5, color: "text.disabled", direction: "ltr", display: "inline-block", whiteSpace: "nowrap", mt: 0.5 }}>
+                    <Typography sx={{ fontSize: 10.5, color: "rgba(255,255,255,0.25)", direction: "ltr", display: "inline-block", whiteSpace: "nowrap" }}>
                       {date}
                     </Typography>
                   </Box>
@@ -752,57 +676,52 @@ const PageHeader = styled(Box)(({ theme }) => ({
   justifyContent: "space-between",
   flexWrap: "wrap",
   gap: theme.spacing(2),
-  marginBottom: theme.spacing(4),
-  paddingBottom: theme.spacing(4),
+  marginBottom: theme.spacing(3.5),
+  paddingBottom: theme.spacing(3),
   position: "relative",
   "&::after": {
     content: '""',
     position: "absolute",
     bottom: 0, right: 0, left: 0, height: 1,
-    background: "linear-gradient(to left, rgba(253,197,0,0.25), transparent 60%)",
+    background: "linear-gradient(to left, rgba(253,197,0,0.2), transparent 55%)",
   },
 }));
 
-const PeriodSelector = styled(Box)(({ theme }) => ({
+const PeriodSelector = styled(Box)(() => ({
   display: "flex",
   background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: "12px",
-  padding: "4px",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: "10px",
+  padding: "3px",
   gap: "2px",
   alignSelf: "flex-start",
 }));
 
 const PeriodButton = styled("button", {
   shouldForwardProp: (p) => p !== "active",
-})(({ theme, active }) => ({
+})(({ active }) => ({
   border: "none",
   cursor: "pointer",
-  padding: "6px 16px",
-  borderRadius: "9px",
-  fontSize: 12,
+  padding: "5px 14px",
+  borderRadius: "8px",
+  fontSize: 11.5,
   fontWeight: active ? 700 : 500,
   fontFamily: "inherit",
-  transition: "all 180ms ease",
-  background: active ? "rgba(253,197,0,0.18)" : "transparent",
-  color: active ? theme.palette.secondary.main : "rgba(255,255,255,0.4)",
-  boxShadow: active ? "inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 4px rgba(0,0,0,0.2)" : "none",
+  transition: "all 160ms ease",
+  background: active ? "rgba(253,197,0,0.15)" : "transparent",
+  color: active ? "#fdc500" : "rgba(255,255,255,0.38)",
   "&:hover": {
-    color: active ? theme.palette.secondary.main : "rgba(255,255,255,0.7)",
-    background: active ? "rgba(253,197,0,0.18)" : "rgba(255,255,255,0.06)",
+    color: active ? "#fdc500" : "rgba(255,255,255,0.6)",
+    background: active ? "rgba(253,197,0,0.15)" : "rgba(255,255,255,0.05)",
   },
 }));
 
 const WidgetCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  borderRadius: "14px",
-  background: `linear-gradient(160deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
+  padding: theme.spacing(2.5),
+  borderRadius: "12px",
+  background: theme.palette.background.paper,
   border: "1px solid rgba(255,255,255,0.07)",
   height: "100%",
-  transition: "border-color 200ms",
-  "&:hover": {
-    borderColor: "rgba(255,255,255,0.11)",
-  },
 }));
 
 const PrimaryCardRoot = styled(Paper, {
@@ -810,106 +729,69 @@ const PrimaryCardRoot = styled(Paper, {
 })(({ theme, colorKey, accent }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    padding: theme.spacing(2.5),
-    borderRadius: "14px",
-    background: `linear-gradient(145deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
-    border: `1px solid ${accent ? "rgba(253,197,0,0.18)" : "rgba(255,255,255,0.07)"}`,
+    padding: theme.spacing(2, 2.25),
+    borderRadius: "12px",
+    background: theme.palette.background.paper,
+    border: `1px solid ${accent ? "rgba(253,197,0,0.15)" : "rgba(255,255,255,0.07)"}`,
     height: "100%",
     position: "relative",
     overflow: "hidden",
-    transition: "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
-    cursor: "default",
+    transition: "border-color 200ms ease, box-shadow 200ms ease",
     "&:hover": {
-      transform: "translateY(-3px)",
-      boxShadow: `0 16px 48px rgba(0,0,0,0.35), 0 0 0 1px ${c}20`,
+      borderColor: c + "22",
+      boxShadow: `0 8px 32px rgba(0,0,0,0.25)`,
     },
     "&::before": {
       content: '""', position: "absolute", inset: 0, pointerEvents: "none",
-      background: `radial-gradient(ellipse at top right, ${c}12 0%, transparent 65%)`,
+      background: `radial-gradient(ellipse at top right, ${c}0d 0%, transparent 60%)`,
     },
     "&::after": {
       content: '""', position: "absolute",
-      bottom: 0, right: 0, left: 0, height: 2, borderRadius: "0 0 14px 14px",
-      background: `linear-gradient(to right, transparent, ${c}50, transparent)`,
+      bottom: 0, right: 0, left: 0, height: "2px", borderRadius: "0 0 12px 12px",
+      background: `linear-gradient(to right, transparent, ${c}30, transparent)`,
     },
   };
 });
 
-const IconBadge = styled(Box, {
+const KpiIcon = styled(Box, {
   shouldForwardProp: (p) => p !== "colorKey",
 })(({ theme, colorKey }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    width: 44, height: 44, borderRadius: "10px",
-    background: c + "18",
-    border: `1px solid ${c}28`,
+    width: 36, height: 36, borderRadius: "9px",
+    background: c + "14", border: `1px solid ${c}22`,
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   };
 });
 
-const SecondaryCardRoot = styled(Paper, {
-  shouldForwardProp: (p) => p !== "colorKey",
-})(({ theme, colorKey }) => {
-  const c = theme.palette[colorKey]?.main ?? "#fff";
-  return {
-    padding: theme.spacing(2),
-    borderRadius: "12px",
-    background: `linear-gradient(145deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
-    border: "1px solid rgba(255,255,255,0.07)",
-    height: "100%",
-    position: "relative",
-    overflow: "hidden",
-    transition: "transform 200ms ease, border-color 200ms ease",
-    "&:hover": {
-      transform: "translateY(-2px)",
-      borderColor: c + "28",
-    },
-    "&::before": {
-      content: '""', position: "absolute", inset: 0, pointerEvents: "none",
-      background: `radial-gradient(ellipse at top right, ${c}0e 0%, transparent 70%)`,
-    },
-  };
-});
-
-const SmallIconBadge = styled(Box, {
-  shouldForwardProp: (p) => p !== "colorKey",
-})(({ theme, colorKey }) => {
-  const c = theme.palette[colorKey]?.main ?? "#fff";
-  return {
-    width: 40, height: 40, borderRadius: "10px",
-    background: c + "14",
-    border: `1px solid ${c}22`,
-    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-  };
-});
-
-const CounterCardRoot = styled(Paper, {
+const MetricPillRoot = styled(Paper, {
   shouldForwardProp: (p) => p !== "colorKey",
 })(({ theme, colorKey }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
     padding: theme.spacing(1.5, 2),
     borderRadius: "10px",
-    background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
+    background: theme.palette.background.paper,
     border: "1px solid rgba(255,255,255,0.06)",
+    height: "100%",
     position: "relative",
     overflow: "hidden",
     transition: "border-color 180ms",
-    "&:hover": { borderColor: c + "25" },
+    "&:hover": { borderColor: c + "22" },
     "&::before": {
       content: '""', position: "absolute",
-      top: 0, right: 0, bottom: 0, width: 3, borderRadius: "0 10px 10px 0",
-      background: `linear-gradient(to bottom, ${c}70, ${c}30)`,
+      top: 0, right: 0, bottom: 0, width: 2, borderRadius: "0 10px 10px 0",
+      background: c + "50",
     },
   };
 });
 
-const TinyIcon = styled(Box, {
+const PillIcon = styled(Box, {
   shouldForwardProp: (p) => p !== "colorKey",
 })(({ theme, colorKey }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    width: 34, height: 34, borderRadius: "8px",
+    width: 32, height: 32, borderRadius: "8px",
     background: c + "12", border: `1px solid ${c}1e`,
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   };
