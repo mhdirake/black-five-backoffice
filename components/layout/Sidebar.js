@@ -1,11 +1,16 @@
 "use client";
 
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import CategoryIcon from "@mui/icons-material/Category";
 import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
+import HistoryIcon from "@mui/icons-material/History";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import PeopleIcon from "@mui/icons-material/People";
 import { Avatar, Box, Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
@@ -16,12 +21,49 @@ import { SIDEBAR_WIDTH } from "@/app/(main)/style";
 import { useLocalization } from "@/context/LocalizationProvider";
 import { useSelector } from "react-redux";
 
-const navItems = [
-  { label: "داشبورد", href: "/", icon: DashboardIcon },
-  { label: "حراج‌ها", href: "/auctions", icon: GavelIcon },
-  { label: "محصولات", href: "/products", icon: Inventory2Icon },
-  { label: "دسته‌بندی‌ها", href: "/categories", icon: CategoryIcon },
-  { label: "سطوح بلیت", href: "/ticket-levels", icon: ConfirmationNumberIcon },
+const navGroups = [
+  {
+    items: [
+      { label: "داشبورد", href: "/", icon: DashboardIcon },
+    ],
+  },
+  {
+    group: "مدیریت حراج",
+    items: [
+      { label: "حراج‌ها", href: "/auctions", icon: GavelIcon },
+      { label: "بلیت‌ها", href: "/tickets", icon: ConfirmationNumberIcon },
+    ],
+  },
+  {
+    group: "محصولات و دسته‌بندی‌ها",
+    items: [
+      { label: "محصولات", href: "/products", icon: Inventory2Icon },
+      { label: "دسته‌بندی‌ها", href: "/categories", icon: CategoryIcon },
+    ],
+  },
+  {
+    group: "مدیریت کاربران",
+    items: [
+      { label: "کاربران", href: "/users", icon: PeopleIcon },
+      { label: "احراز هویت کاربران", href: "/kyc-verifications", icon: AssignmentIndIcon },
+    ],
+  },
+  {
+    group: "مدیریت مالی",
+    items: [
+      { label: "کیف پول کاربران", href: "/wallets", icon: AccountBalanceWalletIcon },
+      { label: "تراکنش‌های کیف پول", href: "/wallet-transactions", icon: PaymentsIcon },
+      { label: "پرداخت‌های کاربران", href: "/payment-deposits", icon: PaymentsIcon },
+      { label: "درخواست‌های برداشت", href: "/withdrawal-requests", icon: PaymentsIcon },
+      { label: "درگاه‌های پرداخت", href: "/payment-gateways", icon: PaymentsIcon },
+    ],
+  },
+  {
+    group: "مدیریت سیستم",
+    items: [
+      { label: "گزارش فعالیت‌ها", href: "/audit-logs", icon: HistoryIcon },
+    ],
+  },
 ];
 
 export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
@@ -47,44 +89,53 @@ export default function Sidebar({ userName, mobileOpen, onMobileClose }) {
 
       <Divider sx={{ borderColor: "secondary.main", opacity: 0.1, mx: 2 }} />
 
-      <List sx={{ flexGrow: 1, pt: 2, px: 1.5 }}>
-        {navItems.map(({ label, href, icon: Icon }) => {
-          const isActive = pathname === href;
-          return (
-            <ListItem key={href} disablePadding sx={{ mb: 0.5 }}>
-              <NavButton
-                component={Link}
-                href={href}
-                isActive={isActive}
-                onClick={isMobile ? onMobileClose : undefined}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 36,
-                    color: isActive ? "secondary.main" : "text.disabled",
-                    transition: "color 200ms ease",
-                    ...(isActive && { filter: "drop-shadow(0 0 6px rgba(253,197,0,0.5))" }),
-                  }}
-                >
-                  <Icon sx={{ fontSize: 18 }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={label}
-                  slotProps={{
-                    primary: {
-                      sx: {
-                        fontSize: 13.5,
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? "text.primary" : "text.disabled",
-                        textAlign: isRtl ? "right" : "left",
-                      },
-                    },
-                  }}
-                />
-              </NavButton>
-            </ListItem>
-          );
-        })}
+      <List sx={{ flexGrow: 1, pt: 2, px: 1.5, overflowY: "auto" }}>
+        {navGroups.map(({ group, items }, gi) => (
+          <Box key={gi}>
+            {group && (
+              <Typography sx={{ fontSize: 10, fontWeight: 700, color: "text.disabled", opacity: 0.5, letterSpacing: "0.1em", textTransform: "uppercase", px: 1.5, pt: gi === 0 ? 0 : 1.5, pb: 0.75 }}>
+                {group}
+              </Typography>
+            )}
+            {items.map(({ label, href, icon: Icon }) => {
+              const isActive = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+              return (
+                <ListItem key={href} disablePadding sx={{ mb: 0.5 }}>
+                  <NavButton
+                    component={Link}
+                    href={href}
+                    isActive={isActive}
+                    onClick={isMobile ? onMobileClose : undefined}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 36,
+                        color: isActive ? "secondary.main" : "text.disabled",
+                        transition: "color 200ms ease",
+                        ...(isActive && { filter: "drop-shadow(0 0 6px rgba(253,197,0,0.5))" }),
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 18 }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={label}
+                      slotProps={{
+                        primary: {
+                          sx: {
+                            fontSize: 13,
+                            fontWeight: isActive ? 600 : 400,
+                            color: isActive ? "text.primary" : "text.disabled",
+                            textAlign: isRtl ? "right" : "left",
+                          },
+                        },
+                      }}
+                    />
+                  </NavButton>
+                </ListItem>
+              );
+            })}
+          </Box>
+        ))}
       </List>
 
       <Box sx={{ px: 1.5, pb: 2 }}>
