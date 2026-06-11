@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
@@ -10,6 +13,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { toast } from "react-toastify";
 import { paymentDepositsApi } from "@/store/slices/paymentDeposits/paymentDepositsApi";
 import { Table } from "@/components/ui/Table";
 import { PaginationBar } from "@/components/ui/PaginationBar";
@@ -81,7 +85,21 @@ export default function PaymentDepositsPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]     = useState(true);
+  const [processing, setProcessing] = useState(false);
+
+  const handleAction = async (fn, successMsg, errorMsg) => {
+    setProcessing(true);
+    try {
+      await fn();
+      toast.success(successMsg);
+      fetchList();
+    } catch {
+      toast.error(errorMsg);
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -106,6 +124,29 @@ export default function PaymentDepositsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  const actions = [
+    {
+      type: "icon",
+      icon: <CheckCircleOutlineIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => paymentDepositsApi.markPaid(row.id), "پرداخت تأیید شد", "خطا در تأیید"),
+      sx: { color: "text.disabled", "&:hover": { color: "success.main" } },
+      hidden: (row) => row.status !== "pending",
+    },
+    {
+      type: "icon",
+      icon: <ErrorOutlineIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => paymentDepositsApi.markFailed(row.id), "پرداخت ناموفق ثبت شد", "خطا"),
+      sx: { color: "text.disabled", "&:hover": { color: "warning.main" } },
+      hidden: (row) => row.status !== "pending",
+    },
+    {
+      type: "icon",
+      icon: <CancelOutlinedIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => paymentDepositsApi.cancel(row.id), "پرداخت لغو شد", "خطا در لغو"),
+      sx: { color: "text.disabled", "&:hover": { color: "error.main" } },
+      hidden: (row) => !["pending"].includes(row.status),
+    },
+  ];
 
   return (
     <Box>
@@ -149,7 +190,7 @@ export default function PaymentDepositsPage() {
         </TextField>
       </Box>
 
-      <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="واریزی یافت نشد" />
+      <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="واریزی یافت نشد" />
 
             <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>

@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
@@ -10,6 +13,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { toast } from "react-toastify";
 import { ticketSellbacksApi } from "@/store/slices/ticketSellbacks/ticketSellbacksApi";
 import { Table } from "@/components/ui/Table";
 import { PaginationBar } from "@/components/ui/PaginationBar";
@@ -115,6 +119,39 @@ export default function TicketSellbacksPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  const handleAction = async (fn, successMsg, errorMsg) => {
+    try {
+      await fn();
+      toast.success(successMsg);
+      fetchList();
+    } catch {
+      toast.error(errorMsg);
+    }
+  };
+
+  const actions = [
+    {
+      type: "icon",
+      icon: <CheckCircleOutlineIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => ticketSellbacksApi.complete(row.id), "بازپس‌فروش تکمیل شد", "خطا"),
+      sx: { color: "text.disabled", "&:hover": { color: "success.main" } },
+      hidden: (row) => row.status !== "pending",
+    },
+    {
+      type: "icon",
+      icon: <ErrorOutlineIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => ticketSellbacksApi.fail(row.id), "بازپس‌فروش ناموفق ثبت شد", "خطا"),
+      sx: { color: "text.disabled", "&:hover": { color: "warning.main" } },
+      hidden: (row) => row.status !== "pending",
+    },
+    {
+      type: "icon",
+      icon: <CancelOutlinedIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => ticketSellbacksApi.cancel(row.id), "بازپس‌فروش لغو شد", "خطا در لغو"),
+      sx: { color: "text.disabled", "&:hover": { color: "error.main" } },
+      hidden: (row) => row.status !== "pending",
+    },
+  ];
 
   return (
     <Box>
@@ -158,7 +195,7 @@ export default function TicketSellbacksPage() {
         </TextField>
       </Box>
 
-      <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="درخواستی یافت نشد" />
+      <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="درخواستی یافت نشد" />
 
             <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>

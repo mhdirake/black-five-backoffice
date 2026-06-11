@@ -123,7 +123,7 @@ export default function WithdrawalRequestsPage() {
   const handleApprove = async (row) => {
     setProcessing(true);
     try {
-      await withdrawalRequestsApi.update(row.id, { status: "approved" });
+      await withdrawalRequestsApi.approve(row.id);
       toast.success("درخواست برداشت تأیید شد");
       fetchList();
     } catch {
@@ -136,7 +136,7 @@ export default function WithdrawalRequestsPage() {
   const handleReject = async () => {
     setProcessing(true);
     try {
-      await withdrawalRequestsApi.update(rejectTarget.id, { status: "rejected", rejection_note: rejectNote });
+      await withdrawalRequestsApi.reject(rejectTarget.id, { rejection_note: rejectNote });
       toast.success("درخواست برداشت رد شد");
       setRejectTarget(null);
       setRejectNote("");

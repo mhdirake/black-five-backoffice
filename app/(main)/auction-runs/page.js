@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
+import StopOutlinedIcon from "@mui/icons-material/StopOutlined";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
@@ -10,6 +13,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { toast } from "react-toastify";
 import { auctionRunsApi } from "@/store/slices/auctionRuns/auctionRunsApi";
 import { Table } from "@/components/ui/Table";
 import { PaginationBar } from "@/components/ui/PaginationBar";
@@ -116,6 +120,39 @@ export default function AuctionRunsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  const handleAction = async (fn, successMsg, errorMsg) => {
+    try {
+      await fn();
+      toast.success(successMsg);
+      fetchList();
+    } catch {
+      toast.error(errorMsg);
+    }
+  };
+
+  const actions = [
+    {
+      type: "icon",
+      icon: <PlayArrowOutlinedIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => auctionRunsApi.start(row.id), "دوره شروع شد", "خطا در شروع"),
+      sx: { color: "text.disabled", "&:hover": { color: "success.main" } },
+      hidden: (row) => row.status !== "pending",
+    },
+    {
+      type: "icon",
+      icon: <StopOutlinedIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => auctionRunsApi.finish(row.id), "دوره پایان یافت", "خطا در پایان"),
+      sx: { color: "text.disabled", "&:hover": { color: "warning.main" } },
+      hidden: (row) => row.status !== "running",
+    },
+    {
+      type: "icon",
+      icon: <CancelOutlinedIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => auctionRunsApi.cancel(row.id), "دوره لغو شد", "خطا در لغو"),
+      sx: { color: "text.disabled", "&:hover": { color: "error.main" } },
+      hidden: (row) => !["pending", "running"].includes(row.status),
+    },
+  ];
 
   return (
     <Box>
@@ -159,7 +196,7 @@ export default function AuctionRunsPage() {
         </TextField>
       </Box>
 
-      <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="دوره‌ای یافت نشد" />
+      <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="دوره‌ای یافت نشد" />
 
             <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>

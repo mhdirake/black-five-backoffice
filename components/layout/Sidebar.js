@@ -8,6 +8,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
 import HistoryIcon from "@mui/icons-material/History";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import PeopleIcon from "@mui/icons-material/People";
@@ -32,6 +33,8 @@ const navGroups = [
     items: [
       { label: "حراج‌ها", href: "/auctions", icon: GavelIcon },
       { label: "بلیت‌ها", href: "/tickets", icon: ConfirmationNumberIcon },
+      { label: "بلیت‌های ورود حراج", href: "/auction-entry-tickets", icon: ConfirmationNumberIcon },
+      { label: "استفاده از بلیت تخفیف", href: "/auction-discount-ticket-usages", icon: LocalOfferOutlinedIcon },
     ],
   },
   {

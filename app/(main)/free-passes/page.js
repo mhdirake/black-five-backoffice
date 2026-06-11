@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
@@ -168,7 +170,31 @@ export default function FreePassesPage() {
     }
   };
 
+  const handleAction = async (fn, successMsg, errorMsg) => {
+    try {
+      await fn();
+      toast.success(successMsg);
+      fetchList();
+    } catch {
+      toast.error(errorMsg);
+    }
+  };
+
   const actions = [
+    {
+      type: "icon",
+      icon: <CheckCircleOutlineIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => freePassesApi.markUsed(row.id), "پاس به‌عنوان استفاده‌شده ثبت شد", "خطا"),
+      sx: { color: "text.disabled", "&:hover": { color: "success.main" } },
+      hidden: (row) => !!row.used_at,
+    },
+    {
+      type: "icon",
+      icon: <RefreshIcon sx={{ fontSize: 17 }} />,
+      onClick: (row) => handleAction(() => freePassesApi.restore(row.id), "پاس بازیابی شد", "خطا در بازیابی"),
+      sx: { color: "text.disabled", "&:hover": { color: "info.main" } },
+      hidden: (row) => !row.used_at,
+    },
     {
       type: "icon",
       icon: <DeleteOutlineIcon sx={{ fontSize: 17 }} />,
