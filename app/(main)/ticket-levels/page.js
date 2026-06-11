@@ -93,9 +93,9 @@ export default function TicketLevelsPage() {
   const fetchLevels = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await ticketLevelsApi.list({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE });
-      setRows(res?.results ?? res?.data ?? []);
-      setTotal(res?.count ?? res?.total ?? 0);
+      const res = await ticketLevelsApi.list({ limit: PAGE_SIZE, page_number: page });
+      setRows(res?.data ?? []);
+      setTotal(res?.total ?? 0);
     } catch {
       setRows([]);
     } finally {

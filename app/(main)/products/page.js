@@ -124,9 +124,9 @@ export default function ProductsPage() {
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await productsApi.list({ search, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE });
-      setRows(res?.results ?? res?.data ?? []);
-      setTotal(res?.count ?? res?.total ?? 0);
+      const res = await productsApi.list({ search, limit: PAGE_SIZE, page_number: page });
+      setRows(res?.data ?? []);
+      setTotal(res?.total ?? 0);
     } catch {
       setRows([]);
     } finally {
@@ -145,7 +145,7 @@ export default function ProductsPage() {
   const loadCategories = () => {
     if (categories.length > 0) return;
     categoriesApi.list({ limit: 200 })
-      .then((res) => setCategories(res?.results ?? res?.data ?? []))
+      .then((res) => setCategories(res?.data ?? []))
       .catch(() => {});
   };
 
