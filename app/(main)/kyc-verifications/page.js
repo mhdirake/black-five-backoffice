@@ -14,7 +14,6 @@ import {
   DialogTitle,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
@@ -22,8 +21,8 @@ import { styled } from "@mui/material/styles";
 import { toast } from "react-toastify";
 import { kycVerificationsApi } from "@/store/slices/kycVerifications/kycVerificationsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const STATUS_MAP = {
   pending:  { label: "در انتظار",    color: "warning" },
@@ -89,6 +88,7 @@ export default function KycVerificationsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -101,7 +101,7 @@ export default function KycVerificationsPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       const res = await kycVerificationsApi.list(params);
@@ -167,7 +167,6 @@ export default function KycVerificationsPage() {
     },
   ];
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -213,11 +212,7 @@ export default function KycVerificationsPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="درخواستی یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={!!rejectTarget} onClose={() => !processing && setRejectTarget(null)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontSize: 15, fontWeight: 700, color: "text.primary" }}>رد احراز هویت</DialogTitle>

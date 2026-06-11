@@ -12,7 +12,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
@@ -20,10 +19,10 @@ import { styled } from "@mui/material/styles";
 import { toast } from "react-toastify";
 import { ticketLevelsApi } from "@/store/slices/ticketLevels/ticketLevelsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 import PriceInput from "@/components/ui/PriceInput";
 import TextArea from "@/components/ui/TextArea";
 
-const PAGE_SIZE = 20;
 
 const EMPTY_FORM = {
   name: "",
@@ -80,6 +79,7 @@ export default function TicketLevelsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -93,7 +93,7 @@ export default function TicketLevelsPage() {
   const fetchLevels = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await ticketLevelsApi.list({ limit: PAGE_SIZE, page_number: page });
+      const res = await ticketLevelsApi.list({ limit: pageSize, page_number: page });
       setRows(res?.data ?? []);
       setTotal(res?.total ?? 0);
     } catch {
@@ -167,7 +167,6 @@ export default function TicketLevelsPage() {
     },
   ];
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -193,11 +192,7 @@ export default function TicketLevelsPage() {
         emptyLabel="سطح بلیتی یافت نشد"
       />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

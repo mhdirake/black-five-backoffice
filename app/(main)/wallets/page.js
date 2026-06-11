@@ -6,14 +6,13 @@ import {
   Box,
   Chip,
   InputAdornment,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
 import { walletsApi } from "@/store/slices/wallets/walletsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const COLUMNS = [
   {
@@ -77,6 +76,7 @@ export default function WalletsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -84,7 +84,7 @@ export default function WalletsPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       const res = await walletsApi.list(params);
       setRows(res?.data ?? []);
@@ -103,7 +103,6 @@ export default function WalletsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -135,11 +134,7 @@ export default function WalletsPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="کیف پولی یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>
   );
 }

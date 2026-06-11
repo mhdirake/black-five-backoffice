@@ -7,14 +7,13 @@ import {
   Chip,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
 import { auctionRunsApi } from "@/store/slices/auctionRuns/auctionRunsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const STATUS_MAP = {
   pending:   { label: "در انتظار",    color: "default" },
@@ -88,6 +87,7 @@ export default function AuctionRunsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -96,7 +96,7 @@ export default function AuctionRunsPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       const res = await auctionRunsApi.list(params);
@@ -116,7 +116,6 @@ export default function AuctionRunsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -162,11 +161,7 @@ export default function AuctionRunsPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="دوره‌ای یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>
   );
 }

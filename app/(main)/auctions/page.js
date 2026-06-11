@@ -18,7 +18,6 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
-  Pagination,
   Switch,
   TextField,
   Typography,
@@ -28,10 +27,10 @@ import { toast } from "react-toastify";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { productsApi } from "@/store/slices/products/productsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 import PriceInput from "@/components/ui/PriceInput";
 import DateTimePickerField from "@/components/ui/DateTimePicker";
 
-const PAGE_SIZE = 20;
 
 const TYPE_MAP = {
   dutch: { label: "داچ", color: "secondary" },
@@ -161,9 +160,11 @@ export default function AuctionsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("");
 
   const [products, setProducts] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -173,7 +174,9 @@ export default function AuctionsPage() {
   const fetchAuctions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await auctionsApi.list({ search, limit: PAGE_SIZE, page_number: page });
+      const params = { search, limit: pageSize, page_number: page };
+      if (statusFilter) params.status = statusFilter;
+      const res = await auctionsApi.list(params);
       setRows(res?.data ?? []);
       setTotal(res?.total ?? 0);
     } catch {
@@ -181,7 +184,7 @@ export default function AuctionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [search, page, statusFilter, pageSize]);
 
   useEffect(() => { fetchAuctions(); }, [fetchAuctions]);
 
@@ -274,7 +277,6 @@ export default function AuctionsPage() {
     }
   };
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -292,22 +294,36 @@ export default function AuctionsPage() {
         </AddButton>
       </Box>
 
-      <TextField
-        placeholder="جستجو در حراج‌ها..."
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
-        size="small"
-        sx={{ mb: 3, width: { xs: "100%", sm: 340 } }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 18, color: "text.disabled" }} />
-              </InputAdornment>
-            ),
-          },
-        }}
-      />
+      <Box sx={{ mb: 3, display: "flex", gap: 2, flexWrap: "wrap" }}>
+        <TextField
+          placeholder="جستجو در حراج‌ها..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          size="small"
+          sx={{ width: { xs: "100%", sm: 300 } }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ fontSize: 18, color: "text.disabled" }} />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+        <TextField
+          select label="وضعیت"
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          size="small"
+          sx={{ width: 160 }}
+        >
+          <MenuItem value="">همه وضعیت‌ها</MenuItem>
+          {Object.entries(STATUS_MAP).map(([k, { label }]) => (
+            <MenuItem key={k} value={k}>{label}</MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
       <Table
         columns={COLUMNS}
@@ -324,11 +340,7 @@ export default function AuctionsPage() {
         ]}
       />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

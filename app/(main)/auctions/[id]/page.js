@@ -15,12 +15,12 @@ import {
   Chip,
   CircularProgress,
   IconButton,
-  Pagination,
   Skeleton,
   Tab,
   Tabs,
   Typography,
 } from "@mui/material";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 import { styled, keyframes } from "@mui/material/styles";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { ticketLevelsApi } from "@/store/slices/ticketLevels/ticketLevelsApi";
@@ -32,7 +32,6 @@ import { ticketSellbacksApi } from "@/store/slices/ticketSellbacks/ticketSellbac
 import { freePassesApi } from "@/store/slices/freePasses/freePassesApi";
 import { Table } from "@/components/ui/Table";
 
-const PAGE_SIZE = 20;
 
 // ─── Status config ──────────────────────────────────────────────────────────────
 
@@ -243,13 +242,14 @@ function PaginatedTab({ fetcher, columns, emptyLabel, onFirstLoad }) {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
   const [reportedCount, setReportedCount] = useState(false);
 
   const doFetch = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetcher({ limit: PAGE_SIZE, page_number: page });
+      const res = await fetcher({ limit: pageSize, page_number: page });
       const data = res?.data ?? [];
       const tot  = res?.total ?? 0;
       setRows(data);
@@ -263,19 +263,14 @@ function PaginatedTab({ fetcher, columns, emptyLabel, onFirstLoad }) {
     } finally {
       setLoading(false);
     }
-  }, [fetcher, page, reportedCount, onFirstLoad]);
+  }, [fetcher, page, pageSize, reportedCount, onFirstLoad]);
 
   useEffect(() => { doFetch(); }, [doFetch]);
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
   return (
     <Box sx={{ mt: 2 }}>
       <Table columns={columns} rows={rows} loading={loading} emptyLabel={emptyLabel} />
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+      <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>
   );
 }

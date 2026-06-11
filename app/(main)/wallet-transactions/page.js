@@ -7,14 +7,13 @@ import {
   Chip,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
 import { walletTransactionsApi } from "@/store/slices/walletTransactions/walletTransactionsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const STATUS_MAP = {
   pending:   { label: "در انتظار",  color: "warning" },
@@ -91,17 +90,22 @@ export default function WalletTransactionsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [directionFilter, setDirectionFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
+      if (typeFilter) params.type = typeFilter;
+      if (directionFilter) params.direction = directionFilter;
       const res = await walletTransactionsApi.list(params);
       setRows(res?.data ?? []);
       setTotal(res?.total ?? 0);
@@ -110,7 +114,7 @@ export default function WalletTransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, page, statusFilter]);
+  }, [search, page, statusFilter, typeFilter, directionFilter, pageSize]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
@@ -119,7 +123,6 @@ export default function WalletTransactionsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -154,22 +157,44 @@ export default function WalletTransactionsPage() {
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           size="small"
-          sx={{ width: 150 }}
+          sx={{ width: 140 }}
         >
-          <MenuItem value="">همه</MenuItem>
+          <MenuItem value="">همه وضعیت‌ها</MenuItem>
           {Object.entries(STATUS_MAP).map(([k, { label }]) => (
             <MenuItem key={k} value={k}>{label}</MenuItem>
           ))}
+        </TextField>
+        <TextField
+          select label="نوع"
+          value={typeFilter}
+          onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
+          size="small"
+          sx={{ width: 130 }}
+        >
+          <MenuItem value="">همه انواع</MenuItem>
+          <MenuItem value="deposit">واریز</MenuItem>
+          <MenuItem value="withdrawal">برداشت</MenuItem>
+          <MenuItem value="refund">استرداد</MenuItem>
+          <MenuItem value="transfer">انتقال</MenuItem>
+          <MenuItem value="freeze">انجماد</MenuItem>
+          <MenuItem value="unfreeze">رفع انجماد</MenuItem>
+        </TextField>
+        <TextField
+          select label="جهت"
+          value={directionFilter}
+          onChange={(e) => { setDirectionFilter(e.target.value); setPage(1); }}
+          size="small"
+          sx={{ width: 110 }}
+        >
+          <MenuItem value="">همه</MenuItem>
+          <MenuItem value="credit">واریز</MenuItem>
+          <MenuItem value="debit">برداشت</MenuItem>
         </TextField>
       </Box>
 
       <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="تراکنشی یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>
   );
 }

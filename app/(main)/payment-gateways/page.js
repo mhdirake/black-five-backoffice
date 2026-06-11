@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
-  Pagination,
   Switch,
   TextField,
   Typography,
@@ -22,8 +21,8 @@ import { styled } from "@mui/material/styles";
 import { toast } from "react-toastify";
 import { paymentGatewaysApi } from "@/store/slices/paymentGateways/paymentGatewaysApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const EMPTY_FORM = {
   name: "",
@@ -72,6 +71,7 @@ export default function PaymentGatewaysPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -85,7 +85,7 @@ export default function PaymentGatewaysPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await paymentGatewaysApi.list({ limit: PAGE_SIZE, page_number: page });
+      const res = await paymentGatewaysApi.list({ limit: pageSize, page_number: page });
       setRows(res?.data ?? []);
       setTotal(res?.total ?? 0);
     } catch {
@@ -155,7 +155,6 @@ export default function PaymentGatewaysPage() {
     },
   ];
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -175,11 +174,7 @@ export default function PaymentGatewaysPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="درگاهی یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

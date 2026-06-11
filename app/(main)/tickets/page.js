@@ -6,7 +6,6 @@ import {
   Box,
   Chip,
   InputAdornment,
-  Pagination,
   Tab,
   Tabs,
   TextField,
@@ -16,8 +15,7 @@ import { ticketsApi } from "@/store/slices/tickets/ticketsApi";
 import { ticketSellbacksApi } from "@/store/slices/ticketSellbacks/ticketSellbacksApi";
 import { freePassesApi } from "@/store/slices/freePasses/freePassesApi";
 import { Table } from "@/components/ui/Table";
-
-const PAGE_SIZE = 20;
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
 const SELLBACK_STATUS_MAP = {
   pending:   { label: "در انتظار", color: "warning" },
@@ -198,6 +196,7 @@ function ListTab({ fetchFn, columns, searchPlaceholder, emptyLabel }) {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -205,7 +204,7 @@ function ListTab({ fetchFn, columns, searchPlaceholder, emptyLabel }) {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       const res = await fetchFn(params);
       setRows(res?.data ?? []);
@@ -215,7 +214,7 @@ function ListTab({ fetchFn, columns, searchPlaceholder, emptyLabel }) {
     } finally {
       setLoading(false);
     }
-  }, [fetchFn, search, page]);
+  }, [fetchFn, search, page, pageSize]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
@@ -223,8 +222,6 @@ function ListTab({ fetchFn, columns, searchPlaceholder, emptyLabel }) {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
-
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -245,11 +242,7 @@ function ListTab({ fetchFn, columns, searchPlaceholder, emptyLabel }) {
         }}
       />
       <Table columns={columns} rows={rows} loading={loading} emptyLabel={emptyLabel} />
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+      <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>
   );
 }

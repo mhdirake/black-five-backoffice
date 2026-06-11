@@ -13,7 +13,6 @@ import {
   DialogTitle,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
@@ -22,9 +21,9 @@ import { toast } from "react-toastify";
 import { auctionParametersApi } from "@/store/slices/auctionParameters/auctionParametersApi";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 import PriceInput from "@/components/ui/PriceInput";
 
-const PAGE_SIZE = 20;
 
 const EMPTY_FORM = {
   auction_id: "",
@@ -90,6 +89,7 @@ export default function AuctionParametersPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -105,7 +105,7 @@ export default function AuctionParametersPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       const res = await auctionParametersApi.list(params);
       setRows(res?.data ?? []);
@@ -175,7 +175,6 @@ export default function AuctionParametersPage() {
     },
   ];
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -212,11 +211,7 @@ export default function AuctionParametersPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="پارامتری یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

@@ -14,7 +14,6 @@ import {
   DialogTitle,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
@@ -23,8 +22,8 @@ import { toast } from "react-toastify";
 import { freePassesApi } from "@/store/slices/freePasses/freePassesApi";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const STATUS_MAP = {
   active:  { label: "فعال",     color: "success" },
@@ -89,6 +88,7 @@ export default function FreePassesPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -104,7 +104,7 @@ export default function FreePassesPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       const res = await freePassesApi.list(params);
       setRows(res?.data ?? []);
@@ -177,7 +177,6 @@ export default function FreePassesPage() {
     },
   ];
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -214,11 +213,7 @@ export default function FreePassesPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="پاس رایگانی یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

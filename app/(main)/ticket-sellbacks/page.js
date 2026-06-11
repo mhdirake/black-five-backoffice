@@ -7,14 +7,13 @@ import {
   Chip,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
 import { ticketSellbacksApi } from "@/store/slices/ticketSellbacks/ticketSellbacksApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-const PAGE_SIZE = 20;
 
 const STATUS_MAP = {
   pending:   { label: "در انتظار",  color: "warning" },
@@ -87,6 +86,7 @@ export default function TicketSellbacksPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -95,7 +95,7 @@ export default function TicketSellbacksPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { limit: PAGE_SIZE, page_number: page };
+      const params = { limit: pageSize, page_number: page };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       const res = await ticketSellbacksApi.list(params);
@@ -115,7 +115,6 @@ export default function TicketSellbacksPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -161,11 +160,7 @@ export default function TicketSellbacksPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="درخواستی یافت نشد" />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </Box>
   );
 }
