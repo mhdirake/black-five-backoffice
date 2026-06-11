@@ -109,22 +109,24 @@ const STATUS_LABELS = {
 
 function CardLabel({ children }) {
   return (
-    <Typography sx={{ fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,0.38)", letterSpacing: "0.05em", mb: 0.75 }}>
+    <Typography sx={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.07em", mb: 0.5, textTransform: "uppercase" }}>
       {children}
     </Typography>
   );
 }
 
 function CardValue({ children, loading, size = "lg" }) {
-  if (loading) return <Skeleton variant="text" width={70} height={size === "lg" ? 36 : 28} sx={{ bgcolor: "rgba(255,255,255,0.05)", borderRadius: 1 }} />;
+  if (loading) return <Skeleton variant="text" width={70} height={size === "lg" ? 40 : 30} sx={{ bgcolor: "rgba(255,255,255,0.05)", borderRadius: 1 }} />;
   return (
     <Typography sx={{
-      fontSize: size === "lg" ? 28 : 20,
+      fontSize: size === "lg" ? 30 : 22,
       fontWeight: 800,
-      color: "rgba(255,255,255,0.95)",
+      color: "rgba(255,255,255,0.97)",
       lineHeight: 1,
       direction: "ltr",
-      letterSpacing: "-0.02em",
+      letterSpacing: "-0.03em",
+      fontFeatureSettings: '"tnum"',
+      fontVariantNumeric: "tabular-nums",
     }}>
       {children}
     </Typography>
@@ -203,7 +205,7 @@ function PrimaryKpiCard({ icon: Icon, label, value, colorKey = "secondary", load
     <PrimaryCardRoot colorKey={colorKey} accent={accent ? 1 : 0}>
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
         <KpiIcon colorKey={colorKey}>
-          <Icon sx={{ fontSize: 18, color: `${colorKey}.main` }} />
+          <Icon sx={{ fontSize: 20, color: `${colorKey}.main` }} />
         </KpiIcon>
         {accent && (
           <Box sx={{
@@ -353,10 +355,17 @@ export default function DashboardPage() {
   const activityFeed   = operations?.activity_feed    ?? [];
 
   return (
-    <Box sx={{ pb: 5 }}>
+    <Box sx={{ pb: 5, position: "relative" }}>
+
+      {/* ── Ambient background blobs for glassmorphism depth ── */}
+      <Box aria-hidden sx={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+        <Box sx={{ position: "absolute", top: "-10%", right: "5%",  width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle, rgba(39,98,200,0.18) 0%, transparent 65%)", filter: "blur(60px)" }} />
+        <Box sx={{ position: "absolute", top: "35%",  left: "-8%",  width: 480, height: 480, borderRadius: "50%", background: "radial-gradient(circle, rgba(34,171,148,0.12) 0%, transparent 65%)", filter: "blur(70px)" }} />
+        <Box sx={{ position: "absolute", bottom: "10%", right: "30%", width: 520, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(253,197,0,0.08) 0%, transparent 65%)",  filter: "blur(80px)" }} />
+      </Box>
 
       {/* ── Header ── */}
-      <PageHeader>
+      <PageHeader sx={{ position: "relative", zIndex: 1 }}>
         <Box sx={{ flex: 1 }}>
           <Typography sx={{ fontSize: 10, fontWeight: 700, color: "rgba(253,197,0,0.7)", mb: 0.75, letterSpacing: "0.12em" }}>
             BLACK FIVE · پنل مدیریت
@@ -378,7 +387,7 @@ export default function DashboardPage() {
       </PageHeader>
 
       {/* ── Primary KPIs — 4 equal columns ── */}
-      <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+      <Grid container spacing={1.75} sx={{ mb: 1.75, position: "relative", zIndex: 1 }}>
         {[
           { icon: TrendingUpIcon,                  label: "ارزش کل معاملات (GMV)",   value: fmt(cards.gross_merchandise_value), colorKey: "secondary", accent: true },
           { icon: PaymentsOutlinedIcon,             label: "درآمد واریزها",            value: fmt(cards.deposit_revenue),         colorKey: "info" },
@@ -392,7 +401,7 @@ export default function DashboardPage() {
       </Grid>
 
       {/* ── Secondary KPIs — 5 compact pills ── */}
-      <Grid container spacing={1.75} sx={{ mb: 3 }}>
+      <Grid container spacing={1.75} sx={{ mb: 3, position: "relative", zIndex: 1 }}>
         {[
           { icon: AccountBalanceWalletOutlinedIcon, label: "موجودی کیف‌پول‌های فعال",   value: fmt(cards.active_wallet_balance),  colorKey: "info" },
           { icon: StorefrontOutlinedIcon,           label: "برداشت خروجی",               value: fmt(cards.withdrawal_outflow),     colorKey: "error" },
@@ -689,9 +698,12 @@ const PageHeader = styled(Box)(({ theme }) => ({
 
 const PeriodSelector = styled(Box)(() => ({
   display: "flex",
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: "10px",
+  background: "rgba(0,14,40,0.5)",
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+  borderRadius: "12px",
   padding: "3px",
   gap: "2px",
   alignSelf: "flex-start",
@@ -718,10 +730,23 @@ const PeriodButton = styled("button", {
 
 const WidgetCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2.5),
-  borderRadius: "12px",
-  background: theme.palette.background.paper,
-  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: "16px",
+  background: "rgba(0, 18, 58, 0.48)",
+  backdropFilter: "blur(20px) saturate(160%)",
+  WebkitBackdropFilter: "blur(20px) saturate(160%)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)",
   height: "100%",
+  position: "relative",
+  overflow: "hidden",
+  zIndex: 1,
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0, right: 0, left: 0, height: "1px",
+    background: "linear-gradient(to left, rgba(253,197,0,0.25), rgba(255,255,255,0.1) 40%, transparent 80%)",
+    pointerEvents: "none",
+  },
 }));
 
 const PrimaryCardRoot = styled(Paper, {
@@ -729,26 +754,51 @@ const PrimaryCardRoot = styled(Paper, {
 })(({ theme, colorKey, accent }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    padding: theme.spacing(2, 2.25),
-    borderRadius: "12px",
-    background: theme.palette.background.paper,
-    border: `1px solid ${accent ? "rgba(253,197,0,0.15)" : "rgba(255,255,255,0.07)"}`,
+    padding: theme.spacing(2.5),
+    borderRadius: "18px",
+    background: [
+      `radial-gradient(ellipse at 85% 10%, ${c}20 0%, transparent 52%)`,
+      "rgba(0, 14, 46, 0.52)",
+    ].join(", "),
+    backdropFilter: "blur(28px) saturate(180%)",
+    WebkitBackdropFilter: "blur(28px) saturate(180%)",
+    border: `1px solid ${accent ? "rgba(253,197,0,0.3)" : "rgba(255,255,255,0.1)"}`,
+    boxShadow: accent
+      ? "0 4px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(253,197,0,0.14)"
+      : `0 4px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)`,
     height: "100%",
     position: "relative",
     overflow: "hidden",
-    transition: "border-color 200ms ease, box-shadow 200ms ease",
+    cursor: "default",
+    zIndex: 1,
+    transition: "border-color 240ms ease, box-shadow 240ms ease, transform 240ms ease",
     "&:hover": {
-      borderColor: c + "22",
-      boxShadow: `0 8px 32px rgba(0,0,0,0.25)`,
+      borderColor: `${c}42`,
+      boxShadow: `0 22px 60px rgba(0,0,0,0.55), 0 0 0 1px ${c}20, inset 0 1px 0 ${c}18`,
+      transform: "translateY(-3px)",
     },
     "&::before": {
-      content: '""', position: "absolute", inset: 0, pointerEvents: "none",
-      background: `radial-gradient(ellipse at top right, ${c}0d 0%, transparent 60%)`,
+      content: '""',
+      position: "absolute",
+      top: 0, right: 0, left: 0, height: "2px",
+      borderRadius: "18px 18px 0 0",
+      background: accent
+        ? "linear-gradient(90deg, transparent, #fdc50080 20%, #fdc500 50%, #ffd50080 80%, transparent)"
+        : `linear-gradient(90deg, transparent, ${c}55 25%, ${c} 50%, ${c}55 75%, transparent)`,
+      ...(accent && { animation: "topBarPulse 2.8s ease-in-out infinite" }),
     },
     "&::after": {
-      content: '""', position: "absolute",
-      bottom: 0, right: 0, left: 0, height: "2px", borderRadius: "0 0 12px 12px",
-      background: `linear-gradient(to right, transparent, ${c}30, transparent)`,
+      content: '""',
+      position: "absolute",
+      bottom: -18, left: "50%", transform: "translateX(-50%)",
+      width: "65%", height: 36,
+      background: `radial-gradient(ellipse, ${c}1e 0%, transparent 70%)`,
+      pointerEvents: "none",
+      filter: "blur(12px)",
+    },
+    "@keyframes topBarPulse": {
+      "0%, 100%": { opacity: 0.6 },
+      "50%": { opacity: 1 },
     },
   };
 });
@@ -758,9 +808,18 @@ const KpiIcon = styled(Box, {
 })(({ theme, colorKey }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    width: 36, height: 36, borderRadius: "9px",
-    background: c + "14", border: `1px solid ${c}22`,
+    width: 42, height: 42, borderRadius: "12px",
+    background: "rgba(0,0,0,0.28)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: `1px solid ${c}32`,
+    boxShadow: `0 0 0 5px ${c}09, inset 0 1px 0 ${c}22`,
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+    transition: "box-shadow 240ms ease, border-color 240ms ease",
+    ".MuiPaper-root:hover &": {
+      border: `1px solid ${c}48`,
+      boxShadow: `0 0 0 8px ${c}12, 0 6px 18px ${c}35, inset 0 1px 0 ${c}28`,
+    },
   };
 });
 
@@ -769,19 +828,29 @@ const MetricPillRoot = styled(Paper, {
 })(({ theme, colorKey }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    padding: theme.spacing(1.5, 2),
-    borderRadius: "10px",
-    background: theme.palette.background.paper,
-    border: "1px solid rgba(255,255,255,0.06)",
+    padding: theme.spacing(1.75, 2),
+    borderRadius: "14px",
+    background: "rgba(0, 16, 52, 0.44)",
+    backdropFilter: "blur(20px) saturate(160%)",
+    WebkitBackdropFilter: "blur(20px) saturate(160%)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    boxShadow: "0 2px 16px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07)",
     height: "100%",
     position: "relative",
     overflow: "hidden",
-    transition: "border-color 180ms",
-    "&:hover": { borderColor: c + "22" },
+    zIndex: 1,
+    transition: "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
+    "&:hover": {
+      borderColor: `${c}32`,
+      boxShadow: `0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 ${c}12`,
+      transform: "translateY(-1px)",
+    },
     "&::before": {
-      content: '""', position: "absolute",
-      top: 0, right: 0, bottom: 0, width: 2, borderRadius: "0 10px 10px 0",
-      background: c + "50",
+      content: '""',
+      position: "absolute",
+      top: "18%", right: 0, bottom: "18%", width: "3px",
+      borderRadius: "0 14px 14px 0",
+      background: `linear-gradient(to bottom, transparent, ${c}90, ${c}cc, ${c}90, transparent)`,
     },
   };
 });
@@ -791,8 +860,12 @@ const PillIcon = styled(Box, {
 })(({ theme, colorKey }) => {
   const c = theme.palette[colorKey]?.main ?? "#fff";
   return {
-    width: 32, height: 32, borderRadius: "8px",
-    background: c + "12", border: `1px solid ${c}1e`,
+    width: 36, height: 36, borderRadius: "10px",
+    background: "rgba(0,0,0,0.3)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    border: `1px solid ${c}2a`,
+    boxShadow: `inset 0 1px 0 ${c}1e`,
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   };
 });
