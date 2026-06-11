@@ -15,7 +15,6 @@ import {
   DialogTitle,
   InputAdornment,
   MenuItem,
-  Pagination,
   TextField,
   Typography,
 } from "@mui/material";
@@ -24,10 +23,10 @@ import { toast } from "react-toastify";
 import { productsApi } from "@/store/slices/products/productsApi";
 import { categoriesApi } from "@/store/slices/categories/categoriesApi";
 import { Table } from "@/components/ui/Table";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 import PriceInput from "@/components/ui/PriceInput";
 import TextArea from "@/components/ui/TextArea";
 
-const PAGE_SIZE = 20;
 
 const STATUS_MAP = {
   active:   { label: "فعال",     color: "success" },
@@ -106,6 +105,7 @@ export default function ProductsPage() {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -124,9 +124,9 @@ export default function ProductsPage() {
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await productsApi.list({ search, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE });
-      setRows(res?.results ?? res?.data ?? []);
-      setTotal(res?.count ?? res?.total ?? 0);
+      const res = await productsApi.list({ search, limit: pageSize, page_number: page });
+      setRows(res?.data ?? []);
+      setTotal(res?.total ?? 0);
     } catch {
       setRows([]);
     } finally {
@@ -145,7 +145,7 @@ export default function ProductsPage() {
   const loadCategories = () => {
     if (categories.length > 0) return;
     categoriesApi.list({ limit: 200 })
-      .then((res) => setCategories(res?.results ?? res?.data ?? []))
+      .then((res) => setCategories(res?.data ?? []))
       .catch(() => {});
   };
 
@@ -224,7 +224,6 @@ export default function ProductsPage() {
     },
   ];
 
-  const pageCount = Math.ceil(total / PAGE_SIZE);
 
   return (
     <Box>
@@ -267,11 +266,7 @@ export default function ProductsPage() {
         emptyLabel="محصولی یافت نشد"
       />
 
-      {pageCount > 1 && (
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-          <Pagination count={pageCount} page={page} onChange={(_, v) => setPage(v)} color="primary" shape="rounded" />
-        </Box>
-      )}
+            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

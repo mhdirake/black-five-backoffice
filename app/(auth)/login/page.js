@@ -82,7 +82,7 @@ export default function LoginPage() {
           ورود به پنل مدیریت
         </Typography>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
           <TextField
             fullWidth
             label="نام کاربری"

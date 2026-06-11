@@ -79,6 +79,7 @@ export function Table({
                   <BodyCellStyle align="left" sx={{ maxWidth: "unset" }}>
                     <Box sx={{ display: "flex", gap: 0.5, direction: "ltr" }}>
                       {actions.map((action, ai) =>
+                        action.hidden?.(row) ? null :
                         action.type === "icon" ? (
                           <IconButton
                             key={ai}
