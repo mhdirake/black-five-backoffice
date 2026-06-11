@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
@@ -20,7 +20,8 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import { PaginationBar } from "@/components/ui/PaginationBar";
+import Pagination from "@/components/ui/Pagination";
+import { DEFAULT_PAGE_LENGTH } from "@/constants/general";
 import { styled, keyframes } from "@mui/material/styles";
 import { auctionsApi } from "@/store/slices/auctions/auctionsApi";
 import { ticketLevelsApi } from "@/store/slices/ticketLevels/ticketLevelsApi";
@@ -239,10 +240,12 @@ function InfoTab({ auction }) {
 // ─── PaginatedTab ───────────────────────────────────────────────────────────────
 
 function PaginatedTab({ fetcher, columns, emptyLabel, onFirstLoad }) {
+  const searchParams = useSearchParams();
+  const page = +searchParams.get("page") || 1;
+  const pageSize = +searchParams.get("page_size") || DEFAULT_PAGE_LENGTH;
+
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
   const [reportedCount, setReportedCount] = useState(false);
 
@@ -270,7 +273,7 @@ function PaginatedTab({ fetcher, columns, emptyLabel, onFirstLoad }) {
   return (
     <Box sx={{ mt: 2 }}>
       <Table columns={columns} rows={rows} loading={loading} emptyLabel={emptyLabel} />
-      <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
+      <Pagination total={total} />
     </Box>
   );
 }

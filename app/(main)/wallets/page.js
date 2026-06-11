@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { useCallback, useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import {
@@ -11,7 +13,8 @@ import {
 } from "@mui/material";
 import { walletsApi } from "@/store/slices/wallets/walletsApi";
 import { Table } from "@/components/ui/Table";
-import { PaginationBar } from "@/components/ui/PaginationBar";
+import Pagination from "@/components/ui/Pagination";
+import { DEFAULT_PAGE_LENGTH } from "@/constants/general";
 
 
 const COLUMNS = [
@@ -73,10 +76,11 @@ const COLUMNS = [
 ];
 
 export default function WalletsPage() {
+  const searchParams = useSearchParams();
+  const page = +searchParams.get("page") || 1;
+  const pageSize = +searchParams.get("page_size") || DEFAULT_PAGE_LENGTH;
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -99,7 +103,7 @@ export default function WalletsPage() {
   useEffect(() => { fetchList(); }, [fetchList]);
 
   useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    const t = setTimeout(() => { setSearch(searchInput); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
 
@@ -134,7 +138,7 @@ export default function WalletsPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="کیف پولی یافت نشد" />
 
-            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            <Pagination total={total} />
     </Box>
   );
 }

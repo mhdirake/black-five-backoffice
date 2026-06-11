@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { useCallback, useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -23,7 +25,8 @@ import { toast } from "react-toastify";
 import { productsApi } from "@/store/slices/products/productsApi";
 import { categoriesApi } from "@/store/slices/categories/categoriesApi";
 import { Table } from "@/components/ui/Table";
-import { PaginationBar } from "@/components/ui/PaginationBar";
+import Pagination from "@/components/ui/Pagination";
+import { DEFAULT_PAGE_LENGTH } from "@/constants/general";
 import PriceInput from "@/components/ui/PriceInput";
 import TextArea from "@/components/ui/TextArea";
 
@@ -102,10 +105,11 @@ const COLUMNS = [
 ];
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const page = +searchParams.get("page") || 1;
+  const pageSize = +searchParams.get("page_size") || DEFAULT_PAGE_LENGTH;
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -137,7 +141,7 @@ export default function ProductsPage() {
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    const t = setTimeout(() => { setSearch(searchInput); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
 
@@ -266,7 +270,7 @@ export default function ProductsPage() {
         emptyLabel="محصولی یافت نشد"
       />
 
-            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            <Pagination total={total} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

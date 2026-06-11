@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { useCallback, useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -21,7 +23,8 @@ import { styled } from "@mui/material/styles";
 import { toast } from "react-toastify";
 import { paymentGatewaysApi } from "@/store/slices/paymentGateways/paymentGatewaysApi";
 import { Table } from "@/components/ui/Table";
-import { PaginationBar } from "@/components/ui/PaginationBar";
+import Pagination from "@/components/ui/Pagination";
+import { DEFAULT_PAGE_LENGTH } from "@/constants/general";
 
 
 const EMPTY_FORM = {
@@ -68,10 +71,11 @@ const COLUMNS = [
 ];
 
 export default function PaymentGatewaysPage() {
+  const searchParams = useSearchParams();
+  const page = +searchParams.get("page") || 1;
+  const pageSize = +searchParams.get("page_size") || DEFAULT_PAGE_LENGTH;
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -174,7 +178,7 @@ export default function PaymentGatewaysPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="درگاهی یافت نشد" />
 
-            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            <Pagination total={total} />
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontSize: 16, fontWeight: 700, color: "text.primary", pb: 1 }}>

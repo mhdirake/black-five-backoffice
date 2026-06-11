@@ -1,12 +1,15 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { useCallback, useEffect, useState } from "react";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { Box, InputAdornment, TextField, Typography } from "@mui/material";
 import { auctionEntryTicketsApi } from "@/store/slices/auctionEntryTickets/auctionEntryTicketsApi";
 import { Table } from "@/components/ui/Table";
-import { PaginationBar } from "@/components/ui/PaginationBar";
+import Pagination from "@/components/ui/Pagination";
+import { DEFAULT_PAGE_LENGTH } from "@/constants/general";
 
 const COLUMNS = [
   {
@@ -61,10 +64,11 @@ const COLUMNS = [
 ];
 
 export default function AuctionEntryTicketsPage() {
+  const searchParams = useSearchParams();
+  const page = +searchParams.get("page") || 1;
+  const pageSize = +searchParams.get("page_size") || DEFAULT_PAGE_LENGTH;
   const [rows, setRows]               = useState([]);
   const [total, setTotal]             = useState(0);
-  const [page, setPage]               = useState(1);
-  const [pageSize, setPageSize]       = useState(20);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch]           = useState("");
   const [loading, setLoading]         = useState(true);
@@ -87,7 +91,7 @@ export default function AuctionEntryTicketsPage() {
   useEffect(() => { fetchList(); }, [fetchList]);
 
   useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    const t = setTimeout(() => { setSearch(searchInput); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
 
@@ -126,7 +130,7 @@ export default function AuctionEntryTicketsPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} emptyLabel="رکوردی یافت نشد" />
 
-      <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
+      <Pagination total={total} />
     </Box>
   );
 }

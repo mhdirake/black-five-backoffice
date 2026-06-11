@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { useCallback, useEffect, useState } from "react";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
@@ -16,7 +18,8 @@ import {
 import { toast } from "react-toastify";
 import { ticketSellbacksApi } from "@/store/slices/ticketSellbacks/ticketSellbacksApi";
 import { Table } from "@/components/ui/Table";
-import { PaginationBar } from "@/components/ui/PaginationBar";
+import Pagination from "@/components/ui/Pagination";
+import { DEFAULT_PAGE_LENGTH } from "@/constants/general";
 
 
 const STATUS_MAP = {
@@ -87,10 +90,11 @@ const COLUMNS = [
 ];
 
 export default function TicketSellbacksPage() {
+  const searchParams = useSearchParams();
+  const page = +searchParams.get("page") || 1;
+  const pageSize = +searchParams.get("page_size") || DEFAULT_PAGE_LENGTH;
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -115,7 +119,7 @@ export default function TicketSellbacksPage() {
   useEffect(() => { fetchList(); }, [fetchList]);
 
   useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    const t = setTimeout(() => { setSearch(searchInput); }, 400);
     return () => clearTimeout(t);
   }, [searchInput]);
 
@@ -184,7 +188,7 @@ export default function TicketSellbacksPage() {
         <TextField
           select label="وضعیت"
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          onChange={(e) => setStatusFilter(e.target.value)}
           size="small"
           sx={{ width: 150 }}
         >
@@ -197,7 +201,7 @@ export default function TicketSellbacksPage() {
 
       <Table columns={COLUMNS} rows={rows} loading={loading} actions={actions} emptyLabel="درخواستی یافت نشد" />
 
-            <PaginationBar page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            <Pagination total={total} />
     </Box>
   );
 }
